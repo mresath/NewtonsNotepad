@@ -1,0 +1,7 @@
+# Build artifacts
+build/
+*.exe
+*.out
+
+# VS Code local settings
+.vscode/
