@@ -9,20 +9,20 @@ set(SFML_DIR "${CMAKE_SOURCE_DIR}/vendor/SFML/lib/cmake/SFML")
 
 find_package(SFML 2.6.1 COMPONENTS graphics window system REQUIRED)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} 
+    src/main.cpp
+    src/objects/Body.cpp
+    src/core/World.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE src)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics)
 
-
-function(COPY_SFML_LIB_POST_BUILD TARGET_NAME LIB_NAME)
-    add_custom_command(
-        TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/vendor/SFML/bin"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-        COMMENT "Copying SFML DLLs to build directory..."
-    )
-endfunction()
-COPY_SFML_LIB_POST_BUILD(${PROJECT_NAME} sfml-graphics)
-COPY_SFML_LIB_POST_BUILD(${PROJECT_NAME} sfml-window)
-COPY_SFML_LIB_POST_BUILD(${PROJECT_NAME} sfml-system)
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/vendor/SFML/bin"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    COMMENT "Copying SFML DLLs to build directory..."
+)
