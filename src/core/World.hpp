@@ -1,12 +1,12 @@
 #pragma once
 
 #include <vector>
-#include "objects/Body.hpp"
-
+#include <SFML/Graphics.hpp>
+#include "objects/Object.hpp"
 class World
 {
 private:
-    std::vector<Body *> bodies;       // List of bodies in the world
+    std::vector<Object *> objects;       // List of objects in the world
     Vec2 gravity = Vec2(0.0f, 9.81f); // Default gravity pointing downwards
 
 public:
@@ -16,12 +16,13 @@ public:
     ~World();
 
     // Methods
-    void addBody(Body *body);      // Add a body to the world
-    void removeBody(size_t index); // Remove a body from the world by index
+    void addObject(Object *object);      // Add an object to the world
+    void removeObject(size_t index); // Remove an object from the world by index
 
-    void update(float dt); // Update each body in the world based on forces and time step
+    void update(float dt); // Update each object in the world based on forces and time step
+    void draw(sf::RenderWindow *window); // Draw all objects in the world
 
-    const std::vector<Body *> &getBodies() const; // Get the list of bodies
+    const std::vector<Object *> &getObjects() const; // Get the list of objects
 
     void setGravity(const Vec2 &newGravity); // Set the gravity vector
     Vec2 getGravity() const;                 // Get the current gravity vector

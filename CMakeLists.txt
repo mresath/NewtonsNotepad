@@ -5,7 +5,11 @@ project(NewtonsNotepad)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SFML_DIR "${CMAKE_SOURCE_DIR}/vendor/SFML/lib/cmake/SFML")
+if (WIN32)
+    set(SFML_DIR "${CMAKE_SOURCE_DIR}/vendor/SFML/lib/cmake/SFML")
+elseif(APPLE)
+    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/sfml@2")
+endif()
 
 find_package(SFML 2.6.1 COMPONENTS graphics window system REQUIRED)
 

@@ -1,5 +1,4 @@
 #include "Body.hpp"
-#include "math/Util.hpp"
 
 // Constructors
 Body::Body(const Vec2 &position, float mass)
@@ -23,7 +22,7 @@ void Body::applyForce(const Vec2 &force)
 
 void Body::update(float dt)
 {
-    acceleration = metersToPixels(netForce) * invMass;
+    acceleration = netForce * invMass;
     velocity += acceleration * dt;
     position += velocity * dt;
 

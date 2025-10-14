@@ -1,39 +1,20 @@
 #include <SFML/Graphics.hpp>
-#include "objects/Body.hpp"
 #include "core/World.hpp"
 
 // Methods
-void updateShapes(std::vector<sf::CircleShape> &shapes, const std::vector<Body *> &bodies) // Update all shapes to match body positions
+sf::CircleShape* createCircleShape(float radius, const sf::Color &color)
 {
-    for (size_t i = 0; i < bodies.size(); ++i)
-    {
-        shapes[i].setPosition(bodies[i]->position.x, bodies[i]->position.y);
-    }
-}
-
-void drawShapes(sf::RenderWindow &window, const std::vector<sf::CircleShape> &shapes) // Draw all shapes to the window
-{
-    for (const auto &shape : shapes)
-    {
-        window.draw(shape);
-    }
-}
-
-sf::CircleShape createCircleShape(std::vector<sf::CircleShape> &shapes, float radius, const sf::Color &color) // Create and store a circle shape
-{
-    sf::CircleShape circle(radius);
-    circle.setFillColor(color);
-    circle.setOrigin(radius, radius);
-    shapes.push_back(circle);
+    sf::CircleShape *circle = new sf::CircleShape(radius);
+    circle->setFillColor(color);
+    circle->setOrigin(radius, radius);
     return circle;
 }
 
-sf::RectangleShape createSquareShape(std::vector<sf::RectangleShape> &shapes, const float size, const sf::Color &color) // Create and store a square shape
+sf::RectangleShape* createSquareShape(const float size, const sf::Color &color)
 {
-    sf::RectangleShape square(sf::Vector2f(size, size));
-    square.setFillColor(color);
-    square.setOrigin(size / 2, size / 2);
-    shapes.push_back(square);
+    sf::RectangleShape* square = new sf::RectangleShape(sf::Vector2f(size, size));
+    square->setFillColor(color);
+    square->setOrigin(size / 2, size / 2);
     return square;
 }
 
@@ -49,12 +30,10 @@ int main()
 
     // Initialize world and objects
     World world;
-    std::vector<sf::CircleShape> shapes;
 
     // Create a ball for demonstration
-    Body *ball = new Body(Vec2(400, 300), 1.0f);
-    world.addBody(ball);
-    sf::CircleShape circle = createCircleShape(shapes, 10.0f, sf::Color::Green);
+    Object *ballObject = new Object(new Body(Vec2(pixelsToMeters(400), pixelsToMeters(300)), 1.0f), createCircleShape(metersToPixels(0.25f), sf::Color::Green));
+    world.addObject(ballObject);
 
     // Main loop
     while (window.isOpen())
@@ -78,13 +57,12 @@ int main()
         // Update world and bodies
         world.update(dt);
 
-        // Update shapes to match body positions
-        const std::vector<Body *> &bodies = world.getBodies();
-        updateShapes(shapes, bodies);
-
         // Clear screen and draw shapes
         window.clear(sf::Color::Black);
-        drawShapes(window, shapes);
+        for (Object *object : world.getObjects())
+        {
+            object->draw(&window);
+        }
         window.display();
     }
 

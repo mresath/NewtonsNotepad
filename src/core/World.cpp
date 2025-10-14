@@ -7,38 +7,48 @@ World::World(const Vec2 &gravity)
 }
 World::~World()
 {
-    for (Body *body : bodies)
+    for (Object *object : objects)
     {
-        delete body;
+        delete object;
     }
 }
 
-void World::addBody(Body *body)
+void World::addObject(Object *object)
 {
-    bodies.push_back(body);
+    objects.push_back(object);
 }
 
-void World::removeBody(size_t index)
+void World::removeObject(size_t index)
 {
-    if (index < bodies.size())
+    if (index < objects.size())
     {
-        bodies.erase(bodies.begin() + index);
+        objects.erase(objects.begin() + index);
     }
 }
 
 void World::update(float dt)
 {
-    for (Body *body : bodies)
+    for (Object *object : objects)
     {
-        body->applyForce(gravity * body->mass);
+        Body *body = object->body;
 
-        body->update(dt);
+        body->applyForce(gravity * body->mass);
+        
+        object->update(dt);
     }
 }
 
-const std::vector<Body *> &World::getBodies() const
+void World::draw(sf::RenderWindow *window)
 {
-    return bodies;
+    for (Object *object : objects)
+    {
+        object->draw(window);
+    }
+}
+
+const std::vector<Object *> &World::getObjects() const
+{
+    return objects;
 }
 
 void World::setGravity(const Vec2 &newGravity)
