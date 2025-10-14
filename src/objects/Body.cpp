@@ -8,11 +8,6 @@ Body::Body(const Vec2 &position, float mass)
 
     this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;
 }
-Body::Body(const Vec2 &position, float mass, float dragCoefficient, float area)
-{
-    this->area = area;
-    this->dragCoefficient = dragCoefficient;
-}
 
 // Methods
 void Body::applyForce(const Vec2 &force)

@@ -32,7 +32,7 @@ int main()
     World world;
 
     // Create a ball for demonstration
-    Object *ballObject = new Object(new Body(Vec2(pixelsToMeters(400), pixelsToMeters(300)), 1.0f), createCircleShape(metersToPixels(0.25f), sf::Color::Green));
+    Object *ballObject = new Object(*pixelsToMeters(new Vec2(400, 300)), 0.25f, 1.0f, CIRCLE);
     world.addObject(ballObject);
 
     // Main loop
@@ -59,10 +59,7 @@ int main()
 
         // Clear screen and draw shapes
         window.clear(sf::Color::Black);
-        for (Object *object : world.getObjects())
-        {
-            object->draw(&window);
-        }
+        world.draw(&window);
         window.display();
     }
 

@@ -20,7 +20,6 @@ struct Body
 
     // Constructors
     Body(const Vec2 &position, float mass);
-    Body(const Vec2 &position, float mass, float dragCoefficient, float area);
 
     // Methods
     void applyForce(const Vec2 &force); // Apply a force to the body
