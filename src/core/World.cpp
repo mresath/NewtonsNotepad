@@ -1,4 +1,5 @@
 #include "World.hpp"
+#include "engine/Collision.hpp"
 
 World::World() : gravity(0.0f, 9.81f) {}
 World::World(const Vec2 &gravity)
@@ -28,12 +29,36 @@ void World::removeObject(size_t index)
 
 void World::update(float dt)
 {
+    // Apply global forces
     for (Object *object : objects)
     {
         Body *body = object->body;
 
-        body->applyForce(gravity * body->mass);
-        
+        if (object->doGravity) {
+            body->applyForce(gravity * body->mass);
+        }
+    }
+
+    // Collision detection and forces
+    for (size_t i = 0; i < objects.size(); i++)
+    {
+        for (size_t j = i + 1; j < objects.size(); j++)
+        {
+            Object *objA = objects[i];
+            Object *objB = objects[j];
+
+            CollisionInfo info = checkCollision(objA, objB);
+
+            if (info.isColliding)
+            {
+                resolveCollision(objA, objB, info, dt);
+            }
+        }
+    }
+    
+    // Update all objects
+    for (Object *object : objects)
+    {
         object->update(dt);
     }
 }

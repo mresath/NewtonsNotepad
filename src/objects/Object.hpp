@@ -10,59 +10,64 @@
 enum ShapeType
 {
     CIRCLE,
-    SQUARE
+    RECTANGLE,
 };
 
 struct Object
 {
     Body *body;
     sf::Shape *shape;
+    ShapeType shapeType;
 
-    float r;
+    Vec2 dimensions;
+    float volume;
 
-    Object(float r, Body *b, sf::Shape *s) : body(b), shape(s), r(r) {}
-    Object(Vec2 position, float r, float mass, ShapeType type)
+    bool isStatic = false;
+    bool doGravity = true;
+    bool doDrag = false;
+    bool doFriction = false;
+    bool canApplyFriction = true;
+
+    Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     {
-        this->r = r;
-        float len = metersToPixels(r);
-        body = new Body(position, mass);
+        this->shapeType = type;
+        this->dimensions = dimensions;
+        Vec2* len = metersToPixels(&dimensions);
+        this->volume = (4.0f / 3.0f) * M_PI * dimensions.x * dimensions.x * dimensions.x;
+        body = new Body(position, density * volume);
         if (type == CIRCLE)
         {
-            shape = new sf::CircleShape(len);
-            shape->setOrigin(len, len);
-            body->area = M_PI * r * r;
+            shape = new sf::CircleShape(len->x);
+            shape->setOrigin(len->x, len->x);
         }
-        else if (type == SQUARE)
+        else if (type == RECTANGLE)
         {
-            shape = new sf::RectangleShape(sf::Vector2f(len, len));
-            shape->setOrigin(len / 2, len / 2);
-            body->area = r * r;
+            shape = new sf::RectangleShape(sf::Vector2f(len->x, len->y));
+            shape->setOrigin(len->x / 2, len->y / 2);
         }
         shape->setFillColor(sf::Color::White);
+        delete len;
     }
-    Object(Vec2 position, float r, float mass, ShapeType type, float dragC)
+
+    void setStatic(bool isStatic)
     {
-        this->r = r;
-        body = new Body(position, mass);
-        body->dragCoefficient = dragC;
-        if (type == CIRCLE)
-        {
-            shape = new sf::CircleShape(r);
-            shape->setOrigin(r, r);
-            body->area = M_PI * r * r;
+        this->isStatic = isStatic;
+        doGravity = !isStatic;
+        if (isStatic) {
+            doDrag = false;
+            doFriction = false;
+            canApplyFriction = true;
         }
-        else if (type == SQUARE)
-        {
-            shape = new sf::RectangleShape(sf::Vector2f(r, r));
-            shape->setOrigin(r / 2, r / 2);
-            body->area = r * r;
-        }
-        shape->setFillColor(sf::Color::White);
+    }
+
+    void applyForce(const Vec2 &force)
+    {
+        body->applyForce(force);
     }
 
     void update(float dt)
     {
-        body->update(dt);
+        if (!isStatic) body->update(dt);
 
         Vec2 *pos = metersToPixels(&body->position);
         shape->setPosition(pos->x, pos->y);

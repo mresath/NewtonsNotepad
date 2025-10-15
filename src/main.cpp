@@ -1,6 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include "core/World.hpp"
 
+#define WORLD_WIDTH 4000
+#define WORLD_HEIGHT 4000
+#define THICKNESS 30
+#define LIGHTGREY sf::Color(180, 180, 180, 255)
+
+
 // Methods
 sf::CircleShape* createCircleShape(float radius, const sf::Color &color)
 {
@@ -32,8 +38,23 @@ int main()
     World world;
 
     // Create a ball for demonstration
-    Object *ballObject = new Object(*pixelsToMeters(new Vec2(400, 300)), 0.25f, 1.0f, CIRCLE);
+    Object *ballObject = new Object(*pixelsToMeters(new Vec2(400, 300)), Vec2(0.25, 0.25), 1.0f, CIRCLE);
     world.addObject(ballObject);
+
+    // Create ground and walls
+    Object *ground = new Object(*pixelsToMeters(new Vec2(400, 600 - THICKNESS / 2)), *pixelsToMeters(new Vec2(WORLD_WIDTH, THICKNESS)), 1.0f, RECTANGLE);
+    Object *leftWall = new Object(*pixelsToMeters(new Vec2(-(WORLD_WIDTH + THICKNESS / 2), WORLD_HEIGHT / 2)), *pixelsToMeters(new Vec2(THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
+    Object *rightWall = new Object(*pixelsToMeters(new Vec2(WORLD_WIDTH + THICKNESS / 2, WORLD_HEIGHT / 2)), *pixelsToMeters(new Vec2(THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
+    ground->setStatic(true);
+    leftWall->setStatic(true);
+    rightWall->setStatic(true);
+    ground->shape->setFillColor(LIGHTGREY);
+    leftWall->shape->setFillColor(LIGHTGREY);
+    rightWall->shape->setFillColor(LIGHTGREY);
+    world.addObject(ground);
+    world.addObject(leftWall);
+    world.addObject(rightWall);
+    
 
     // Main loop
     while (window.isOpen())

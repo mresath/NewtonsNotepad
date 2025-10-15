@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <string>
 
 struct Vec2
 {
@@ -64,13 +65,37 @@ struct Vec2
         y = newY;
     }
 
+    float lengthSquared() const
+    {
+        return x * x + y * y;
+    }
+
     float length() const
     {
-        return std::sqrt(x * x + y * y);
+        return std::sqrt(lengthSquared());
     }
 
     float angle() const
     {
         return std::atan2(y, x);
     }
+
+    Vec2 normalized() const
+    {
+        float len = length();
+        if (len > 0.0f)
+            return Vec2(x / len, y / len);
+        return Vec2(0, 0);
+    }
+
+    // Conversions
+    std::string toString() const
+    {
+        return "Vec2(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+    }
 };
+
+inline float dot(const Vec2 &a, const Vec2 &b)
+{
+    return a.x * b.x + a.y * b.y;
+}

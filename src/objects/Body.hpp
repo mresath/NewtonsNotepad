@@ -16,7 +16,9 @@ struct Body
 
     // Other Properties
     float dragCoefficient = 0.47f;
-    float area = 1.0f;
+    float staticFriction = 0.5f;
+    float kineticFriction = 0.3f;
+    float restitution = 0.7f;
 
     // Constructors
     Body(const Vec2 &position, float mass);
