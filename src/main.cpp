@@ -4,11 +4,10 @@
 #define WORLD_WIDTH 4000
 #define WORLD_HEIGHT 4000
 #define THICKNESS 30
-#define LIGHTGREY sf::Color(180, 180, 180, 255)
-
+#define LIGHTGREY sf::Color(140, 140, 140, 255)
 
 // Methods
-sf::CircleShape* createCircleShape(float radius, const sf::Color &color)
+sf::CircleShape *createCircleShape(float radius, const sf::Color &color)
 {
     sf::CircleShape *circle = new sf::CircleShape(radius);
     circle->setFillColor(color);
@@ -16,9 +15,9 @@ sf::CircleShape* createCircleShape(float radius, const sf::Color &color)
     return circle;
 }
 
-sf::RectangleShape* createSquareShape(const float size, const sf::Color &color)
+sf::RectangleShape *createSquareShape(const float size, const sf::Color &color)
 {
-    sf::RectangleShape* square = new sf::RectangleShape(sf::Vector2f(size, size));
+    sf::RectangleShape *square = new sf::RectangleShape(sf::Vector2f(size, size));
     square->setFillColor(color);
     square->setOrigin(size / 2, size / 2);
     return square;
@@ -54,7 +53,6 @@ int main()
     world.addObject(ground);
     world.addObject(leftWall);
     world.addObject(rightWall);
-    
 
     // Main loop
     while (window.isOpen())

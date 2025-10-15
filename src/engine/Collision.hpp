@@ -144,24 +144,38 @@ CollisionInfo checkCollision(Object *objA, Object *objB)
 // Calculate and apply normal and friction forces based on collision info
 void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, float dt)
 {
-    if (objA->isStatic && objB->isStatic) {
+    // Don't resolve collision if both objects are static
+    if (objA->isStatic && objB->isStatic)
+    {
         return;
     }
 
-    Body* bodyA = objA->body;
-    Body* bodyB = objB->body;
+    Body *bodyA = objA->body;
+    Body *bodyB = objB->body;
 
+    // Calculate inverse masses (0 for static objects)
     float invMassA = objA->isStatic ? 0.0f : bodyA->invMass;
     float invMassB = objB->isStatic ? 0.0f : bodyB->invMass;
     float invMassSum = invMassA + invMassB;
 
+    // Positional correction to avoid sinking
+    const float percent = 0.8f; // Penetration percentage to correct
+    const float slop = 0.01f;   // Penetration allowance
+    Vec2 correction = info.normal * (std::max(info.penetration - slop, 0.0f) / invMassSum) * percent * -1;
+    if (!objA->isStatic)
+        bodyA->position -= correction * invMassA;
+    if (!objB->isStatic)
+        bodyB->position += correction * invMassB;
+
     // Calculate and apply impulse
     Vec2 relativeVelocity = bodyB->velocity - bodyA->velocity;
     float restitution = std::min(bodyA->restitution, bodyB->restitution);
-    
+
     float vNormalMag = dot(relativeVelocity, info.normal);
-    // if (std::abs(vNormalMag) > 0) return; // Objects are separating
-    // if (std::abs(vNormalMag) < 0.1f) restitution = 0.0f; // Prevent tiny bounces
+    if (vNormalMag < 0)
+        return; // Objects are separating
+    if (std::abs(vNormalMag) < 0.01f)
+        return; // Negligible collision
     Vec2 vNormal = info.normal * vNormalMag * -(1 + restitution);
 
     Vec2 impulse = vNormal / invMassSum;
@@ -171,6 +185,6 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
 
     // Calculate and apply normal force
     Vec2 fNormal = info.normal * dot(bodyA->netForce - bodyB->netForce, info.normal) * -1;
-    bodyA->applyForce(fNormal);
-    bodyB->applyForce(fNormal * -1);
+    objA->applyForce(fNormal);
+    objB->applyForce(fNormal * -1);
 }

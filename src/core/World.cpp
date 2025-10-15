@@ -34,8 +34,9 @@ void World::update(float dt)
     {
         Body *body = object->body;
 
-        if (object->doGravity) {
-            body->applyForce(gravity * body->mass);
+        if (object->doGravity)
+        {
+            object->applyForce(gravity * body->mass);
         }
     }
 
@@ -55,7 +56,7 @@ void World::update(float dt)
             }
         }
     }
-    
+
     // Update all objects
     for (Object *object : objects)
     {

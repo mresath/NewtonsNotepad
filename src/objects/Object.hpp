@@ -32,20 +32,21 @@ struct Object
     {
         this->shapeType = type;
         this->dimensions = dimensions;
-        Vec2* len = metersToPixels(&dimensions);
-        this->volume = (4.0f / 3.0f) * M_PI * dimensions.x * dimensions.x * dimensions.x;
-        body = new Body(position, density * volume);
+        Vec2 *len = metersToPixels(&dimensions);
         if (type == CIRCLE)
         {
             shape = new sf::CircleShape(len->x);
             shape->setOrigin(len->x, len->x);
+            this->volume = M_PI * dimensions.x * dimensions.x;
         }
         else if (type == RECTANGLE)
         {
             shape = new sf::RectangleShape(sf::Vector2f(len->x, len->y));
             shape->setOrigin(len->x / 2, len->y / 2);
+            this->volume = dimensions.x * dimensions.y;
         }
         shape->setFillColor(sf::Color::White);
+        body = new Body(position, density * volume);
         delete len;
     }
 
@@ -53,7 +54,8 @@ struct Object
     {
         this->isStatic = isStatic;
         doGravity = !isStatic;
-        if (isStatic) {
+        if (isStatic)
+        {
             doDrag = false;
             doFriction = false;
             canApplyFriction = true;
@@ -62,12 +64,14 @@ struct Object
 
     void applyForce(const Vec2 &force)
     {
-        body->applyForce(force);
+        if (!isStatic)
+            body->applyForce(force);
     }
 
     void update(float dt)
     {
-        if (!isStatic) body->update(dt);
+        if (!isStatic)
+            body->update(dt);
 
         Vec2 *pos = metersToPixels(&body->position);
         shape->setPosition(pos->x, pos->y);
