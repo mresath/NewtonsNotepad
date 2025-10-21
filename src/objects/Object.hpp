@@ -36,13 +36,13 @@ struct Object
         if (type == CIRCLE)
         {
             shape = new sf::CircleShape(len->x);
-            shape->setOrigin(len->x, len->x);
+            shape->setOrigin(sf::Vector2f(len->x, len->x));
             this->volume = M_PI * dimensions.x * dimensions.x;
         }
         else if (type == RECTANGLE)
         {
             shape = new sf::RectangleShape(sf::Vector2f(len->x, len->y));
-            shape->setOrigin(len->x / 2, len->y / 2);
+            shape->setOrigin(sf::Vector2f(len->x / 2, len->y / 2));
             this->volume = dimensions.x * dimensions.y;
         }
         shape->setFillColor(sf::Color::White);
@@ -74,7 +74,7 @@ struct Object
             body->update(dt);
 
         Vec2 *pos = metersToPixels(&body->position);
-        shape->setPosition(pos->x, pos->y);
+        shape->setPosition(sf::Vector2f(pos->x, pos->y));
         delete pos;
     }
 
