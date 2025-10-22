@@ -88,6 +88,18 @@ struct Vec2
         return Vec2(0, 0);
     }
 
+    Vec2 constrained(Vec2 min, Vec2 max) const
+    {
+        return Vec2(std::fmax(min.x, std::fmin(x, max.x)),
+                    std::fmax(min.y, std::fmin(y, max.y)));
+    }
+
+    void constrain(Vec2 min, Vec2 max)
+    {
+        x = std::fmax(min.x, std::fmin(x, max.x));
+        y = std::fmax(min.y, std::fmin(y, max.y));
+    }
+
     // Conversions
     std::string toString() const
     {

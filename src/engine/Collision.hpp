@@ -18,7 +18,7 @@ CollisionInfo checkCircleCircleCollision(Object *objA, Object *objB)
     CollisionInfo info;
     info.isColliding = false;
 
-    Vec2 diff = objB->body->position - objA->body->position;
+    Vec2 diff = objA->body->position - objB->body->position;
     float distance = diff.length();
     float radiusSum = objA->dimensions.x + objB->dimensions.x;
 
@@ -41,7 +41,7 @@ CollisionInfo checkRectRectCollision(Object *objA, Object *objB)
     Vec2 halfSizeA = objA->dimensions * 0.5f;
     Vec2 halfSizeB = objB->dimensions * 0.5f;
 
-    Vec2 diff = objB->body->position - objA->body->position;
+    Vec2 diff = objA->body->position - objB->body->position;
 
     // Calculate overlap on each axis
     float overlapX = (halfSizeA.x + halfSizeB.x) - std::abs(diff.x);
@@ -50,6 +50,8 @@ CollisionInfo checkRectRectCollision(Object *objA, Object *objB)
     if (overlapX > 0 && overlapY > 0)
     {
         info.isColliding = true;
+
+        std::cout << diff.toString() << std::endl;
 
         // Choose the axis with smallest overlap (minimum penetration)
         if (overlapX < overlapY)
@@ -119,6 +121,11 @@ CollisionInfo checkCircleRectCollision(Object *circle, Object *rect)
 // General Collision detection
 CollisionInfo checkCollision(Object *objA, Object *objB)
 {
+    if (objA->isGrabbed || objB->isGrabbed)
+    {
+        return CollisionInfo{false, Vec2(0, 0), 0.0f};
+    }
+
     if (objA->shapeType == CIRCLE && objB->shapeType == CIRCLE)
     {
         return checkCircleCircleCollision(objA, objB);
@@ -176,14 +183,14 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
         return; // Objects are separating
     if (std::abs(vNormalMag) < 0.01f)
         return; // Negligible collision
-    Vec2 vNormal = info.normal * vNormalMag * -(1 + restitution);
 
-    Vec2 impulse = vNormal / invMassSum;
+    float impulseMagnitude = -(1.0f + restitution) * vNormalMag / invMassSum;
+    Vec2 impulse = info.normal * impulseMagnitude;
 
     bodyA->velocity -= impulse * invMassA;
     bodyB->velocity += impulse * invMassB;
 
-    // Calculate and apply normal force
+    // Apply normal force
     Vec2 fNormal = info.normal * dot(bodyA->netForce - bodyB->netForce, info.normal) * -1;
     objA->applyForce(fNormal);
     objB->applyForce(fNormal * -1);

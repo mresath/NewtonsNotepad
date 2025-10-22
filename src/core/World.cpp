@@ -1,7 +1,7 @@
 #include "World.hpp"
 #include "engine/Collision.hpp"
 
-World::World() : gravity(0.0f, 9.81f) {}
+World::World() : gravity(DEFAULT_GRAVITY) {}
 World::World(const Vec2 &gravity)
 {
     this->gravity = gravity;
@@ -27,6 +27,8 @@ void World::removeObject(size_t index)
     }
 }
 
+
+
 void World::update(float dt)
 {
     // Apply global forces
@@ -47,6 +49,9 @@ void World::update(float dt)
         {
             Object *objA = objects[i];
             Object *objB = objects[j];
+
+            if (objA->isStatic && objB->isStatic)
+                continue;
 
             CollisionInfo info = checkCollision(objA, objB);
 
@@ -85,4 +90,13 @@ void World::setGravity(const Vec2 &newGravity)
 Vec2 World::getGravity() const
 {
     return gravity;
+}
+
+void World::setODESolver(SolverType type)
+{
+    odeSolver = type;
+    for (Object *object : objects)
+    {
+        object->switchSolver(type);
+    }
 }

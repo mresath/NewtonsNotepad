@@ -6,6 +6,7 @@
 #include <math.h>
 #include "objects/Body.hpp"
 #include "math/Util.hpp"
+#include "engine/ODE.hpp"
 
 enum ShapeType
 {
@@ -13,8 +14,12 @@ enum ShapeType
     RECTANGLE,
 };
 
-struct Object
+class Object
 {
+private:
+    ODESolver *solver;
+
+public:
     Body *body;
     sf::Shape *shape;
     ShapeType shapeType;
@@ -22,64 +27,26 @@ struct Object
     Vec2 dimensions;
     float volume;
 
+    bool isSelectable = true;
     bool isStatic = false;
     bool doGravity = true;
     bool doDrag = false;
     bool doFriction = false;
     bool canApplyFriction = true;
 
-    Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
-    {
-        this->shapeType = type;
-        this->dimensions = dimensions;
-        Vec2 *len = metersToPixels(&dimensions);
-        if (type == CIRCLE)
-        {
-            shape = new sf::CircleShape(len->x);
-            shape->setOrigin(sf::Vector2f(len->x, len->x));
-            this->volume = M_PI * dimensions.x * dimensions.x;
-        }
-        else if (type == RECTANGLE)
-        {
-            shape = new sf::RectangleShape(sf::Vector2f(len->x, len->y));
-            shape->setOrigin(sf::Vector2f(len->x / 2, len->y / 2));
-            this->volume = dimensions.x * dimensions.y;
-        }
-        shape->setFillColor(sf::Color::White);
-        body = new Body(position, density * volume);
-        delete len;
-    }
+    bool isGrabbed = false;
 
-    void setStatic(bool isStatic)
-    {
-        this->isStatic = isStatic;
-        doGravity = !isStatic;
-        if (isStatic)
-        {
-            doDrag = false;
-            doFriction = false;
-            canApplyFriction = true;
-        }
-    }
+    Object(Vec2 position, Vec2 dimensions, float density, ShapeType type);
+    ~Object();
 
-    void applyForce(const Vec2 &force)
-    {
-        if (!isStatic)
-            body->applyForce(force);
-    }
+    void setStatic(bool isStatic);
+    void setConstant();
 
-    void update(float dt)
-    {
-        if (!isStatic)
-            body->update(dt);
+    void applyForce(const Vec2 &force);
 
-        Vec2 *pos = metersToPixels(&body->position);
-        shape->setPosition(sf::Vector2f(pos->x, pos->y));
-        delete pos;
-    }
+    void switchSolver(SolverType type);
 
-    void draw(sf::RenderWindow *window)
-    {
-        window->draw(*shape);
-    }
+    void update(float dt);
+
+    void draw(sf::RenderWindow *window);
 };

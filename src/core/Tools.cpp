@@ -4,12 +4,13 @@
 
 Tools::Tools() : currentTool(nullptr)
 {
-    for (int i = SELECT; i <= DRAW_SPRING; i++)
+    for (int i = SELECT; i < TOOL_END; i++)
     {
-        sf::Texture *texture = getToolTexture(static_cast<ToolType>(i));
-
-        tools.push_back(new Tool(static_cast<ToolType>(i), texture, Vec2(TOOLS_MARGIN, TOOLS_MARGIN + i * (TOOLS_ICON_SIZE + TOOLS_MARGIN))));
+        tools.push_back(new Tool(static_cast<ToolType>(i), getToolTexture(static_cast<ToolType>(i))));
     }
+
+    currentTool = tools[0];
+    settings = new ToolSettings();
 }
 Tools::~Tools()
 {
@@ -17,6 +18,7 @@ Tools::~Tools()
     {
         delete tool;
     }
+    delete settings;
 }
 
 void Tools::addTool(Tool *tool)
@@ -34,6 +36,31 @@ void Tools::removeTool(size_t index)
 void Tools::setCurrentTool(Tool *tool)
 {
     currentTool = tool;
+    delete settings;
+    switch (tool->type)
+    {
+        case PULL:
+            settings = new PullSettings();
+            break;
+        case PUSH:
+            settings = new PushSettings();
+            break;
+        case DRAW_CIRCLE:
+            settings = new CircleSettings();
+            break;
+        case DRAW_RECTANGLE:
+            settings = new RectSettings();
+            break;
+        case DRAW_ROPE:
+            settings = new RopeSettings();
+            break;
+        case DRAW_SPRING:
+            settings = new SpringSettings();
+            break;
+        default:
+            settings = new ToolSettings();
+            break;
+    }
 }
 Tool *Tools::getCurrentTool() const
 {

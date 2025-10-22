@@ -1,6 +1,8 @@
 #pragma once
 
-#define PIXELS_PER_METER 50.f
+#include "Config.h"
+
+#include "math/Vec2.hpp"
 
 // Conversion functions
 

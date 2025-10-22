@@ -18,9 +18,9 @@ add_subdirectory(vendor/imgui-sfml)
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
-    src/objects/Body.cpp
     src/core/World.cpp
     src/core/Tools.cpp
+    src/objects/Object.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)

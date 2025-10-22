@@ -21,9 +21,13 @@ struct Body
     float restitution = 0.7f;
 
     // Constructors
-    Body(const Vec2 &position, float mass);
+    Body(const Vec2 &position, float mass) : position(position), mass(mass)
+    {
+        this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;
+    }
 
     // Methods
-    void applyForce(const Vec2 &force); // Apply a force to the body
-    void update(float dt);              // Update the body's state based on forces and time step
+    void applyForce(const Vec2 &force) {
+        netForce += force;
+    };
 };
