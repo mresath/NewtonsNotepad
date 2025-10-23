@@ -13,6 +13,8 @@ int main()
     const int propFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
     const int toolSettingsFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
+    bool settingsOpen = false;
+
     Object *selectedObject = nullptr;
     Object *grabbedObject = nullptr;
 
@@ -99,6 +101,13 @@ int main()
                     center.y = maxY;
 
                 newView.setCenter(center);
+            }
+            else if (const auto *keyReleased = event->getIf<sf::Event::KeyReleased>())
+            {
+                if (keyReleased->code == sf::Keyboard::Key::Escape)
+                {
+                    settingsOpen = !settingsOpen;
+                }
             }
             else if (!ImGui::GetIO().WantCaptureMouse)
             {
@@ -235,6 +244,7 @@ int main()
                                 {
                                     obj->isGrabbed = true;
                                     grabbedObject = obj;
+                                    selectedObject = obj;
                                     break;
                                 }
                             }
@@ -349,6 +359,7 @@ int main()
         Tool *currentTool = tools.getCurrentTool();
         ToolType type = currentTool->type;
 
+        // Tool settings window
         ImGui::Begin("Tool Settings", nullptr, toolSettingsFlags);
         char nameBuffer[256];
         std::strcpy(nameBuffer, currentTool->getName());
@@ -414,12 +425,49 @@ int main()
         }
         ImGui::End();
 
+        // Object properties window
         if (selectedObject != nullptr)
         {
             ImGui::Begin("Object Properties", nullptr, propFlags);
-            ImGui::Text(selectedObject->shapeType == CIRCLE ? "Circle" : "Rectangle");
+            if (selectedObject->shapeType == CIRCLE)
+            {
+                ImGui::Text("Circle");
+                ImGui::Separator();
+                ImGui::Text("Radius: %.2f m", selectedObject->dimensions.x);
+            }
+            else
+            {
+                ImGui::Text("Rectangle");
+                ImGui::Separator();
+                ImGui::Text("Width: %.2f m", selectedObject->dimensions.x);
+                ImGui::Text("Height: %.2f m", selectedObject->dimensions.y);
+            }
+            ImGui::Text("Mass: %.2f kg", selectedObject->body->mass);
             ImGui::Separator();
+            ImGui::Text("Net Force: %s N", (selectedObject->body->acceleration * selectedObject->body->mass).toString().c_str());
+            ImGui::Text("Acceleration: %s m/s²", selectedObject->body->acceleration.toString().c_str());
+            ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
+            ImGui::Text("Position: %s m", selectedObject->body->position.toString().c_str());
+            ImGui::Separator();
+            ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
+            ImGui::DragFloat("Static Friction", &selectedObject->body->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
+            ImGui::DragFloat("Kinetic Friction", &selectedObject->body->kineticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
+            ImGui::DragFloat("Restitution", &selectedObject->body->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
+            ImGui::End();
+        }
 
+        // Simulation settings window
+        if (settingsOpen)
+        {
+            ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
+            ImGui::DragFloat("Gravity", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
+            ImGui::DragFloat("Air Density", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
+            static const char *solverItems[] = {"Euler", "RK2", "RK4"};
+            static int currentSolver = static_cast<int>(world.getODESolver());
+            if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
+            {
+                world.setODESolver(static_cast<SolverType>(currentSolver));
+            }
             ImGui::End();
         }
 

@@ -30,8 +30,8 @@ public:
     bool isSelectable = true;
     bool isStatic = false;
     bool doGravity = true;
-    bool doDrag = false;
-    bool doFriction = false;
+    bool doDrag = true;
+    bool doFriction = true;
     bool canApplyFriction = true;
 
     bool isGrabbed = false;

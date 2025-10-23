@@ -1,11 +1,7 @@
 #include "World.hpp"
 #include "engine/Collision.hpp"
 
-World::World() : gravity(DEFAULT_GRAVITY) {}
-World::World(const Vec2 &gravity)
-{
-    this->gravity = gravity;
-}
+World::World() : gravity(DEFAULT_GRAVITY), airDensity(DEFAULT_AIR_DENSITY) {}
 World::~World()
 {
     for (Object *object : objects)
@@ -27,8 +23,6 @@ void World::removeObject(size_t index)
     }
 }
 
-
-
 void World::update(float dt)
 {
     // Apply global forces
@@ -39,6 +33,19 @@ void World::update(float dt)
         if (object->doGravity)
         {
             object->applyForce(gravity * body->mass);
+        }
+
+        if (object->doDrag && body->dragCoefficient != 0.0f)
+        {
+            Vec2 dragForce = body->velocity * -1.0f;
+            float speedSq = body->velocity.lengthSquared();
+            if (speedSq > 0.0f)
+            {
+                dragForce = dragForce.normalized();
+                float dragMagnitude = 0.5f * airDensity * speedSq * object->dimensions.x * body->dragCoefficient;
+                dragForce *= dragMagnitude;
+                object->applyForce(dragForce);
+            }
         }
     }
 
@@ -82,16 +89,6 @@ const std::vector<Object *> &World::getObjects() const
     return objects;
 }
 
-void World::setGravity(const Vec2 &newGravity)
-{
-    gravity = newGravity;
-}
-
-Vec2 World::getGravity() const
-{
-    return gravity;
-}
-
 void World::setODESolver(SolverType type)
 {
     odeSolver = type;
@@ -99,4 +96,9 @@ void World::setODESolver(SolverType type)
     {
         object->switchSolver(type);
     }
+}
+
+SolverType World::getODESolver() const
+{
+    return odeSolver;
 }

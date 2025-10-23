@@ -21,13 +21,16 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     delete len;
 
     shape->setFillColor(sf::Color::White);
-    
+
     body = new Body(position, density * volume);
-    
+
     switch (DEFAULT_SOLVER)
     {
     case EULER:
         solver = new EulerSolver(body);
+        break;
+    case RK2:
+        solver = new RK2Solver(body);
         break;
     case RK4:
         solver = new RK4Solver(body);
@@ -69,17 +72,25 @@ void Object::applyForce(const Vec2 &force)
 void Object::switchSolver(SolverType type)
 {
     ODESolver *newSolver = nullptr;
-    if (type == EULER)
+    switch (type)
     {
+    case EULER:
         newSolver = new EulerSolver(body);
-    }
-    else if (type == RK4)
-    {
+        break;
+    case RK2:
+        newSolver = new RK2Solver(body);
+        break;
+    case RK4:
         newSolver = new RK4Solver(body);
+        ;
+        break;
     }
-    if (solver)
-        delete solver;
-    solver = newSolver;
+    if (newSolver)
+    {
+        if (solver)
+            delete solver;
+        solver = newSolver;
+    }
 }
 
 void Object::update(float dt)
@@ -104,5 +115,3 @@ void Object::draw(sf::RenderWindow *window)
 {
     window->draw(*shape);
 }
-
-

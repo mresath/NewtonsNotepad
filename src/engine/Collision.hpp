@@ -194,4 +194,7 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
     Vec2 fNormal = info.normal * dot(bodyA->netForce - bodyB->netForce, info.normal) * -1;
     objA->applyForce(fNormal);
     objB->applyForce(fNormal * -1);
+
+    // Apply friction force
+
 }

@@ -8,13 +8,15 @@ class World
 {
 private:
     std::vector<Object *> objects;    // List of objects in the world
-    Vec2 gravity = Vec2(0.0f, 9.81f); // Default gravity pointing downwards
     SolverType odeSolver = DEFAULT_SOLVER;       // Default ODE solver
 
 public:
-    // Constructors and Destructor
+    // World properties
+    Vec2 gravity = DEFAULT_GRAVITY; // Default gravity pointing downwards
+    float airDensity = DEFAULT_AIR_DENSITY;        // Air density for drag calculations
+
+    // Constructors & Destructor
     World();
-    World(const Vec2 &gravity);
     ~World();
 
     // Methods
@@ -26,8 +28,6 @@ public:
 
     const std::vector<Object *> &getObjects() const; // Get the list of objects
 
-    void setGravity(const Vec2 &newGravity); // Set the gravity vector
-    Vec2 getGravity() const;                 // Get the current gravity vector
-
     void setODESolver(SolverType type); // Set the ODE solver type
+    SolverType getODESolver() const;     // Get the current ODE solver type
 };
