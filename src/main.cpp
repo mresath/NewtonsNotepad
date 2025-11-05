@@ -1,6 +1,7 @@
 #include "Config.h"
 
 #include <iostream>
+#include <fmt/format.h>
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include "core/World.hpp"
@@ -295,10 +296,7 @@ int main()
 
         // Tool settings window
         ImGui::Begin("Tool Settings", nullptr, toolSettingsFlags);
-        char nameBuffer[256];
-        std::strcpy(nameBuffer, currentTool->getName());
-        std::strcat(nameBuffer, " Tool");
-        ImGui::Text(nameBuffer);
+        ImGui::Text(fmt::format("{} Tool", currentTool->getName()).c_str());
         if (type == SELECT)
         {
             ImGui::Text("Left Click to select object");
