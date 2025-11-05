@@ -9,6 +9,7 @@ class World
 private:
     std::vector<Object *> objects;    // List of objects in the world
     SolverType odeSolver = DEFAULT_SOLVER;       // Default ODE solver
+    int nextObjectID = 0;              // ID counter for objects
 
 public:
     // World properties

@@ -10,6 +10,7 @@
 #define HALF_WALL_THICKNESS (WALL_THICKNESS / 2)
 #define WALL_COLOR sf::Color(140, 140, 140, 255)
 #define ZOOM_STEP 0.025f
+#define PAN_SPEED 15.f
 
 // UI CONFIGURATION
 #define Y_ITEM_SPACING 6.0f
@@ -49,6 +50,8 @@
 #define MAX_FORCE 500.0f
 #define FORCE_STEP 5.0f
 #define DEFAULT_FORCE 50.0f
+#define MAX_ATTENUATION 1.0f
+#define FORCE_SCALE 0.05f
 
 #define MIN_DRAG 0.0f
 #define MAX_DRAG 1.0f

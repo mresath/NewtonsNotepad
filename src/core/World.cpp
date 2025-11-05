@@ -12,6 +12,8 @@ World::~World()
 
 void World::addObject(Object *object)
 {
+    object->setID(nextObjectID++);
+    object->switchSolver(odeSolver);
     objects.push_back(object);
 }
 
@@ -32,20 +34,30 @@ void World::update(float dt)
 
         if (object->doGravity)
         {
-            object->applyForce(gravity * body->mass);
+            Vec2 *gravityPointer = &gravity;
+            ForceSource gravitySource("gravity", [gravityPointer](Body state) {
+                Vec2 gForce = *gravityPointer * state.mass;
+                return Force(Vec2(0, 0), gForce);
+            });
+            object->applyForce(gravitySource);
         }
 
         if (object->doDrag && body->dragCoefficient != 0.0f)
         {
-            Vec2 dragForce = body->velocity * -1.0f;
-            float speedSq = body->velocity.lengthSquared();
-            if (speedSq > 0.0f)
-            {
-                dragForce = dragForce.normalized();
-                float dragMagnitude = 0.5f * airDensity * speedSq * object->dimensions.x * body->dragCoefficient;
-                dragForce *= dragMagnitude;
-                object->applyForce(dragForce);
-            }
+            float airDensity = this->airDensity; 
+            float area = object->dimensions.x;
+            ForceSource dragSource("drag", [airDensity, area](Body state) {
+                Vec2 df = state.velocity * -1.0f;
+                float speedSq = state.velocity.lengthSquared();
+                if (speedSq > 0.0f)
+                {
+                    df = df.normalized();
+                    float dragMagnitude = 0.5f * airDensity * speedSq * area * state.dragCoefficient;
+                    df *= dragMagnitude;
+                }
+                return Force(Vec2(0, 0), df);
+            });
+            object->applyForce(dragSource);
         }
     }
 

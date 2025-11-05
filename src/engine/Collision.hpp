@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fmt/format.h>
 #include "math/Vec2.hpp"
 #include "objects/Object.hpp"
 
@@ -191,10 +192,10 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
     bodyB->velocity += impulse * invMassB;
 
     // Apply normal force
+    // TODO: convert to variable force sources
     Vec2 fNormal = info.normal * dot(bodyA->netForce - bodyB->netForce, info.normal) * -1;
-    objA->applyForce(fNormal);
-    objB->applyForce(fNormal * -1);
+    objA->applyForce(ForceSource(fmt::format("normal%d", objB->getID()), Force(Vec2(0, 0), fNormal)));
+    objB->applyForce(ForceSource(fmt::format("normal%d", objA->getID()), Force(Vec2(0, 0), fNormal * -1)));
 
     // Apply friction force
-
 }

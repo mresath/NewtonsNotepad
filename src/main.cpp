@@ -1,9 +1,11 @@
 #include "Config.h"
 
+#include <iostream>
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include "core/World.hpp"
 #include "core/Tools.hpp"
+#include "core/UI.hpp"
 
 // Entry point
 int main()
@@ -61,6 +63,11 @@ int main()
     world.addObject(rightWall);
     world.addObject(ceiling);
 
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+    Vec2 pixelsPos = Vec2(worldPos.x, worldPos.y);
+    Vec2 *posPointer = pixelsToMeters(&pixelsPos);
+
     // Main loop
     while (window.isOpen())
     {
@@ -75,32 +82,9 @@ int main()
             {
                 window.close();
             }
-            else if (const auto *resized = event->getIf<sf::Event::Resized>()) // Resize event: adjust the view to the new window size
+            else if (const sf::Event::Resized *resized = event->getIf<sf::Event::Resized>()) // Resize event: adjust the view to the new window size
             {
-                sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
-                newView.setSize(sf::Vector2f(visibleArea.size.x, visibleArea.size.y));
-
-                // Clamp position after resize
-                sf::Vector2f center = view.getCenter();
-                sf::Vector2f size = newView.getSize();
-                float halfWidth = size.x / 2.0f;
-                float halfHeight = size.y / 2.0f;
-                float minX = -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) + halfWidth;
-                float maxX = (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) - halfWidth;
-                float minY = ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT) + halfHeight;
-                float maxY = (DEF_HEIGHT - HALF_WALL_THICKNESS) - halfHeight;
-
-                if (center.x - halfWidth < -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                    center.x = minX;
-                else if (center.x + halfWidth > (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                    center.x = maxX;
-
-                if (center.y - halfHeight < ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT))
-                    center.y = minY;
-                else if (center.y + halfHeight > (DEF_HEIGHT - HALF_WALL_THICKNESS))
-                    center.y = maxY;
-
-                newView.setCenter(center);
+                handleResize(&window, &newView, &view, resized);
             }
             else if (const auto *keyReleased = event->getIf<sf::Event::KeyReleased>())
             {
@@ -114,87 +98,17 @@ int main()
                 // Make sure UI is not using the mouse before processing mouse events
                 if (const auto *scroll = event->getIf<sf::Event::MouseWheelScrolled>()) // Zoom in/out with mouse wheel
                 {
-                    auto viewSize = view.getSize();
-                    float decFactor = 1 - ZOOM_STEP;
-                    float incFactor = 1 + ZOOM_STEP;
-
-                    // Get mouse position in world coordinates before zoom
-                    sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
-                    sf::Vector2f mouseWorldPosBefore = window.mapPixelToCoords(mousePixelPos, view);
-
-                    // Apply zoom
-                    if (scroll->delta > 0 && viewSize.x * decFactor >= DEF_WIDTH / 2.5 && viewSize.y * decFactor >= DEF_HEIGHT / 2.5)
-                    {
-                        newView.zoom(decFactor);
-                        accumulatedZoom /= incFactor;
-                    }
-                    else if (scroll->delta < 0 && viewSize.x * incFactor <= WORLD_WIDTH && viewSize.y * incFactor <= WORLD_HEIGHT)
-                    {
-                        newView.zoom(incFactor);
-                        accumulatedZoom /= decFactor;
-                    }
-
-                    // Get mouse position in world coordinates after zoom
-                    sf::Vector2f mouseWorldPosAfter = window.mapPixelToCoords(mousePixelPos, newView);
-
-                    // Adjust view center to keep mouse position fixed in world space
-                    sf::Vector2f offset = mouseWorldPosBefore - mouseWorldPosAfter;
-                    newView.move(offset);
-
-                    // Clamp position after zoom
-                    sf::Vector2f center = newView.getCenter();
-                    sf::Vector2f size = newView.getSize();
-                    float halfWidth = size.x / 2.0f;
-                    float halfHeight = size.y / 2.0f;
-                    float minX = -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) + halfWidth;
-                    float maxX = (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) - halfWidth;
-                    float minY = ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT) + halfHeight;
-                    float maxY = (DEF_HEIGHT - HALF_WALL_THICKNESS) - halfHeight;
-
-                    if (center.x - halfWidth < -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                        center.x = minX;
-                    else if (center.x + halfWidth > (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                        center.x = maxX;
-
-                    if (center.y - halfHeight < ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT))
-                        center.y = minY;
-                    else if (center.y + halfHeight > (DEF_HEIGHT - HALF_WALL_THICKNESS))
-                        center.y = maxY;
-
-                    newView.setCenter(center);
+                    handleZoom(&window, &newView, &view, scroll->delta, &accumulatedZoom);
                 }
                 else if (const auto *mouseMoved = event->getIf<sf::Event::MouseMoved>()) // Pan view when right mouse button is held
                 {
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+                    Vec2 pixelsPos = Vec2(worldPos.x, worldPos.y);
+                    *posPointer = *pixelsToMeters(&pixelsPos);
                     if (isPanning)
                     {
-                        // Move based on mouse delta
-                        sf::Vector2f currentMousePos = sf::Vector2f(mouseMoved->position.x, mouseMoved->position.y);
-                        sf::Vector2f deltaPos = lastMousePos - currentMousePos;
-                        deltaPos *= accumulatedZoom;
-                        newView.move(deltaPos);
-                        lastMousePos = currentMousePos;
-
-                        // Clamp position to stay within world bounds
-                        sf::Vector2f center = newView.getCenter();
-                        sf::Vector2f size = newView.getSize();
-                        float halfWidth = size.x / 2.0f;
-                        float halfHeight = size.y / 2.0f;
-                        float minX = -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) + halfWidth;
-                        float maxX = (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) - halfWidth;
-                        float minY = ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT) + halfHeight;
-                        float maxY = (DEF_HEIGHT - HALF_WALL_THICKNESS) - halfHeight;
-
-                        if (center.x - halfWidth < -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                            center.x = minX;
-                        else if (center.x + halfWidth > (WORLD_WIDTH / 2 - HALF_WALL_THICKNESS))
-                            center.x = maxX;
-
-                        if (center.y - halfHeight < ((DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT))
-                            center.y = minY;
-                        else if (center.y + halfHeight > (DEF_HEIGHT - HALF_WALL_THICKNESS))
-                            center.y = maxY;
-
-                        newView.setCenter(center);
+                        handlePanMouse(&window, &newView, &view, mouseMoved, lastMousePos, accumulatedZoom);
                     }
                 }
                 else if (const auto *mouseDown = event->getIf<sf::Event::MouseButtonPressed>())
@@ -245,6 +159,20 @@ int main()
                                     obj->isGrabbed = true;
                                     grabbedObject = obj;
                                     selectedObject = obj;
+
+                                    bool isStatic = obj->isStatic;
+
+                                    obj->applyForce(ForceSource("grab", [posPointer, isStatic](Body state)
+                                                                {
+                                                                    if (isStatic)
+                                                                        return Force();
+
+                                                                    Vec2 posDiff = *posPointer - state.position;
+                                                                    Vec2 desiredVel = posDiff / 0.05f;
+                                                                    Vec2 deltaV = desiredVel - state.velocity;
+                                                                    Vec2 approxForce = deltaV * state.mass / 0.05f;
+                                                                    return Force(Vec2(0.0f, 0.0f), approxForce); }));
+
                                     break;
                                 }
                             }
@@ -264,18 +192,14 @@ int main()
 
                             for (Object *obj : world.getObjects())
                             {
-                                Vec2 objPos = obj->body->position;
-                                Vec2 diff = objPos - metersPos;
-                                float distanceSquared = diff.lengthSquared();
-                                if (distanceSquared < 0.0001f) // Prevent singularity
-                                    continue;
-                                float attenuation = 1.0f / distanceSquared;
-                                float mag = attenuation;
-                                Vec2 force = diff.normalized() * mag;
-                                if (distanceSquared < mag) // Apply force only if within effective range of more than 1N of applied force
-                                {
-                                    obj->applyForce(force);
-                                }
+                                obj->applyForce(ForceSource("tool", [posPointer, forceMag](Body state)
+                                                            {
+                                    Vec2 pos = state.position;
+                                    Vec2 diff = pos - *posPointer;
+                                    float distanceSquared = diff.lengthSquared();
+                                    float attenuation = std::max(1.0f / distanceSquared, MAX_ATTENUATION);
+                                    Vec2 force = diff.normalized() * attenuation * forceMag * FORCE_SCALE;
+                                    return Force(Vec2(0, 0), force); }));
                             }
                         }
                         else if (type == DRAW_CIRCLE)
@@ -326,9 +250,19 @@ int main()
                     {
                         // Release grabbed object on left mouse button release
                         if (grabbedObject != nullptr)
+                        {
+                            grabbedObject->deleteForce("grab");
                             grabbedObject->isGrabbed = false;
+                        };
                         grabbedObject = nullptr;
 
+                        if (toolForceMag != 0.0f)
+                        {
+                            for (Object *obj : world.getObjects())
+                            {
+                                obj->deleteForce("tool");
+                            }
+                        }
                         toolForceMag = 0.0f;
                     }
                     else if (mouseUp->button == sf::Mouse::Button::Right)
@@ -431,13 +365,13 @@ int main()
             ImGui::Begin("Object Properties", nullptr, propFlags);
             if (selectedObject->shapeType == CIRCLE)
             {
-                ImGui::Text("Circle");
+                ImGui::Text("Circle [%d]", selectedObject->getID());
                 ImGui::Separator();
                 ImGui::Text("Radius: %.2f m", selectedObject->dimensions.x);
             }
             else
             {
-                ImGui::Text("Rectangle");
+                ImGui::Text("Rectangle [%d]", selectedObject->getID());
                 ImGui::Separator();
                 ImGui::Text("Width: %.2f m", selectedObject->dimensions.x);
                 ImGui::Text("Height: %.2f m", selectedObject->dimensions.y);
@@ -471,50 +405,15 @@ int main()
             ImGui::End();
         }
 
-        // Handle grabbed object movement
-        if (grabbedObject != nullptr && grabbedObject->isSelectable)
+        // Handle grabbed object position update (if static)
+        if (grabbedObject != nullptr && grabbedObject->isStatic)
         {
-            sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
-            sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
-            Vec2 pixelsPos = Vec2(mouseWorldPos.x, mouseWorldPos.y);
-            Vec2 targetPos = *pixelsToMeters(&pixelsPos);
-            if (grabbedObject->isStatic)
-            {
-                grabbedObject->body->position = targetPos;
-                grabbedObject->body->velocity = Vec2(0.0f, 0.0f);
-            }
-            else
-            {
-                Vec2 posDiff = targetPos - grabbedObject->body->position;
-                Vec2 desiredVelocity = posDiff / 0.05f; // Proportional controller
-                Vec2 deltaV = desiredVelocity - grabbedObject->body->velocity;
-                Vec2 approxForce = deltaV * grabbedObject->body->mass / dt;
-                grabbedObject->applyForce(approxForce);
-            }
-        }
-
-        // Handle tool continuous effects
-        if (toolForceMag != 0.0f)
-        {
-            sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
-            sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
-            Vec2 pixelsPos = Vec2(mouseWorldPos.x, mouseWorldPos.y);
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+            Vec2 pixelsPos = Vec2(worldPos.x, worldPos.y);
             Vec2 metersPos = *pixelsToMeters(&pixelsPos);
-            for (Object *obj : world.getObjects())
-            {
-                Vec2 objPos = obj->body->position;
-                Vec2 diff = objPos - metersPos;
-                float distanceSquared = diff.lengthSquared();
-                if (distanceSquared < 0.0001f) // Prevent singularity
-                    continue;
-                float attenuation = 1.0f / distanceSquared;
-                float mag = toolForceMag * attenuation;
-                Vec2 force = diff.normalized() * mag;
-                if (distanceSquared < std::abs(mag)) // Apply force only if within effective range of more than 1N of applied force
-                {
-                    obj->applyForce(force);
-                }
-            }
+            grabbedObject->body->position = metersPos;
+            grabbedObject->body->velocity = Vec2(0.0f, 0.0f);
         }
 
         // Update world and bodies

@@ -4,9 +4,14 @@
 
 #include <SFML/Graphics.hpp>
 #include <math.h>
+#include <vector>
 #include "objects/Body.hpp"
+#include "objects/Force.hpp"
 #include "math/Util.hpp"
 #include "engine/ODE.hpp"
+
+enum SolverType : unsigned short;
+class ODESolver;
 
 enum ShapeType
 {
@@ -18,6 +23,8 @@ class Object
 {
 private:
     ODESolver *solver;
+    std::vector<ForceSource *> forceSources;
+    int id = 0;
 
 public:
     Body *body;
@@ -42,11 +49,20 @@ public:
     void setStatic(bool isStatic);
     void setConstant();
 
-    void applyForce(const Vec2 &force);
+    void applyForce(const ForceSource &force);
+
+    void deleteForce(const std::string &name);
+
+    const std::vector<ForceSource *> &getForces() const;
+
+    const Force getNetForce() const;
 
     void switchSolver(SolverType type);
 
     void update(float dt);
 
     void draw(sf::RenderWindow *window);
+
+    int getID() const;
+    void setID(int newID);
 };

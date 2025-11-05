@@ -27,13 +27,13 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     switch (DEFAULT_SOLVER)
     {
     case EULER:
-        solver = new EulerSolver(body);
+        solver = new EulerSolver(this);
         break;
     case RK2:
-        solver = new RK2Solver(body);
+        solver = new RK2Solver(this);
         break;
     case RK4:
-        solver = new RK4Solver(body);
+        solver = new RK4Solver(this);
         break;
     }
 }
@@ -43,6 +43,11 @@ Object::~Object()
     delete shape;
     delete body;
     delete solver;
+    for (auto &source : forceSources)
+    {
+        delete source;
+    }
+    forceSources.clear();
 }
 
 void Object::setStatic(bool isStatic)
@@ -63,10 +68,41 @@ void Object::setConstant()
     setStatic(true);
 }
 
-void Object::applyForce(const Vec2 &force)
+void Object::applyForce(const ForceSource &force)
 {
-    if (!isStatic)
-        body->applyForce(force);
+    deleteForce(force.name);
+    forceSources.push_back(new ForceSource(force));
+}
+
+void Object::deleteForce(const std::string &name)
+{
+    for (auto it = forceSources.begin(); it != forceSources.end(); ++it)
+    {
+        if ((*it)->name == name)
+        {
+            delete *it;
+            forceSources.erase(it);
+            break;
+        }
+    }
+}
+
+const std::vector<ForceSource *> &Object::getForces() const
+{
+    return forceSources;
+}
+
+const Force Object::getNetForce() const
+{
+    Vec2 netForce(0.0f, 0.0f);
+    Vec2 netTorquePoint(0.0f, 0.0f);
+    for (const auto &source : forceSources)
+    {
+        Force f = source->calculateForce(*body);
+        netForce += f.force;
+        netTorquePoint += f.position * f.force.length();
+    }
+    return Force(netTorquePoint, netForce);
 }
 
 void Object::switchSolver(SolverType type)
@@ -75,13 +111,13 @@ void Object::switchSolver(SolverType type)
     switch (type)
     {
     case EULER:
-        newSolver = new EulerSolver(body);
+        newSolver = new EulerSolver(this);
         break;
     case RK2:
-        newSolver = new RK2Solver(body);
+        newSolver = new RK2Solver(this);
         break;
     case RK4:
-        newSolver = new RK4Solver(body);
+        newSolver = new RK4Solver(this);
         ;
         break;
     }
@@ -114,4 +150,12 @@ void Object::update(float dt)
 void Object::draw(sf::RenderWindow *window)
 {
     window->draw(*shape);
+}
+
+int Object::getID() const {
+    return id;
+}
+
+void Object::setID(int newID) {
+    id = newID;
 }

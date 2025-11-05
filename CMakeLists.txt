@@ -16,16 +16,19 @@ set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/vendor/imgui")
 set(IMGUI_SFML_FIND_SFML OFF)
 add_subdirectory(vendor/imgui-sfml)
 
+add_subdirectory(vendor/fmt)
+
 add_executable(${PROJECT_NAME} 
     src/main.cpp
     src/core/World.cpp
     src/core/Tools.cpp
     src/objects/Object.cpp
+    src/engine/ODE.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Window SFML::System ImGui-SFML::ImGui-SFML)
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Window SFML::System ImGui-SFML::ImGui-SFML fmt::fmt)
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
