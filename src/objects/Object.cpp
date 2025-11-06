@@ -129,6 +129,12 @@ void Object::switchSolver(SolverType type)
     }
 }
 
+void Object::calculateEnergies()
+{
+    body->kineticEnergy = 0.5f * body->mass * body->velocity.lengthSquared();
+    body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;
+}
+
 void Object::update(float dt)
 {
     if (!isStatic)
@@ -141,6 +147,8 @@ void Object::update(float dt)
 
         body->netForce = Vec2(0.0f, 0.0f);
     }
+
+    calculateEnergies();
 
     Vec2 *pos = metersToPixels(&body->position);
     shape->setPosition(sf::Vector2f(pos->x, pos->y));
@@ -158,4 +166,8 @@ int Object::getID() const {
 
 void Object::setID(int newID) {
     id = newID;
+}
+
+void Object::setGravityPointer(Vec2* gravity) {
+    gravityPtr = gravity;
 }

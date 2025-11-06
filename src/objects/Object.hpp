@@ -25,6 +25,7 @@ private:
     ODESolver *solver;
     std::vector<ForceSource *> forceSources;
     int id = 0;
+    Vec2* gravityPtr;
 
 public:
     Body *body;
@@ -59,10 +60,13 @@ public:
 
     void switchSolver(SolverType type);
 
+    void calculateEnergies();
     void update(float dt);
 
     void draw(sf::RenderWindow *window);
 
     int getID() const;
     void setID(int newID);
+
+    void setGravityPointer(Vec2* gravity);
 };

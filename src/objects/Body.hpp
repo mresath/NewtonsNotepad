@@ -10,6 +10,9 @@ struct Body
     Vec2 acceleration;
     Vec2 netForce;
 
+    float kineticEnergy = 0.0f;
+    float gravitationalPotential = 0.0f;
+
     // Physical Properties
     float mass;
     float invMass; // Inverse of mass to avoid unnecessary divisions

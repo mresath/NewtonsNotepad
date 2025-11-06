@@ -13,6 +13,7 @@ World::~World()
 void World::addObject(Object *object)
 {
     object->setID(nextObjectID++);
+    object->setGravityPointer(&gravity);
     object->switchSolver(odeSolver);
     objects.push_back(object);
 }
@@ -25,28 +26,44 @@ void World::removeObject(size_t index)
     }
 }
 
-void World::update(float dt)
+void World::clearObjects()
 {
-    // Apply global forces
     for (Object *object : objects)
     {
-        Body *body = object->body;
+        delete object;
+    }
+    objects.clear();
+    nextObjectID = 0;
+}
 
-        if (object->doGravity)
+void World::update(float dt)
+{
+    float dtStep = 1.0f / calculationFrequency;
+    if (dtStep > dt)
+        dtStep = dt;
+    for (float step = 0.0f; step <= dt; step += dtStep)
+    {
+        // Apply global forces
+        for (Object *object : objects)
         {
-            Vec2 *gravityPointer = &gravity;
-            ForceSource gravitySource("gravity", [gravityPointer](Body state) {
+            Body *body = object->body;
+
+            if (object->doGravity)
+            {
+                Vec2 *gravityPointer = &gravity;
+                ForceSource gravitySource("gravity", [gravityPointer](Body state)
+                                          {
                 Vec2 gForce = *gravityPointer * state.mass;
-                return Force(Vec2(0, 0), gForce);
-            });
-            object->applyForce(gravitySource);
-        }
+                return Force(Vec2(0, 0), gForce); });
+                object->applyForce(gravitySource);
+            }
 
-        if (object->doDrag && body->dragCoefficient != 0.0f)
-        {
-            float airDensity = this->airDensity; 
-            float area = object->dimensions.x;
-            ForceSource dragSource("drag", [airDensity, area](Body state) {
+            if (object->doDrag && body->dragCoefficient != 0.0f)
+            {
+                float airDensity = this->airDensity;
+                float area = object->dimensions.x;
+                ForceSource dragSource("drag", [airDensity, area](Body state)
+                                       {
                 Vec2 df = state.velocity * -1.0f;
                 float speedSq = state.velocity.lengthSquared();
                 if (speedSq > 0.0f)
@@ -55,36 +72,36 @@ void World::update(float dt)
                     float dragMagnitude = 0.5f * airDensity * speedSq * area * state.dragCoefficient;
                     df *= dragMagnitude;
                 }
-                return Force(Vec2(0, 0), df);
-            });
-            object->applyForce(dragSource);
-        }
-    }
-
-    // Collision detection and forces
-    for (size_t i = 0; i < objects.size(); i++)
-    {
-        for (size_t j = i + 1; j < objects.size(); j++)
-        {
-            Object *objA = objects[i];
-            Object *objB = objects[j];
-
-            if (objA->isStatic && objB->isStatic)
-                continue;
-
-            CollisionInfo info = checkCollision(objA, objB);
-
-            if (info.isColliding)
-            {
-                resolveCollision(objA, objB, info, dt);
+                return Force(Vec2(0, 0), df); });
+                object->applyForce(dragSource);
             }
         }
-    }
 
-    // Update all objects
-    for (Object *object : objects)
-    {
-        object->update(dt);
+        // Collision detection and forces
+        for (size_t i = 0; i < objects.size(); i++)
+        {
+            for (size_t j = i + 1; j < objects.size(); j++)
+            {
+                Object *objA = objects[i];
+                Object *objB = objects[j];
+
+                if (objA->isStatic && objB->isStatic)
+                    continue;
+
+                CollisionInfo info = checkCollision(objA, objB);
+
+                if (info.isColliding)
+                {
+                    resolveCollision(objA, objB, info, dt);
+                }
+            }
+        }
+
+        // Update all objects
+        for (Object *object : objects)
+        {
+            object->update(dtStep);
+        }
     }
 }
 

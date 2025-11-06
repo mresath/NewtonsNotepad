@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <string>
+#include <fmt/format.h>
 
 struct Vec2
 {
@@ -103,7 +104,7 @@ struct Vec2
     // Conversions
     std::string toString() const
     {
-        return "Vec2(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+        return fmt::format("({:.2f}, {:.2f})", x, y);
     }
 };
 

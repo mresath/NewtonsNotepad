@@ -11,7 +11,7 @@ inline void handleResize(sf::Window *window, sf::View *newView, sf::View *oldVie
 
     // Clamp position after resize
     sf::Vector2f center = newView->getCenter();
-    sf::Vector2f size = oldView->getSize();
+    sf::Vector2f size = newView->getSize();
     float halfWidth = size.x / 2.0f;
     float halfHeight = size.y / 2.0f;
     float minX = -(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS) + halfWidth;

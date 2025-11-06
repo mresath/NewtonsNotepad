@@ -64,6 +64,7 @@ int main()
     world.addObject(rightWall);
     world.addObject(ceiling);
 
+    // Mouse pos pointer for tools & force calculations
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
     sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
     Vec2 pixelsPos = Vec2(worldPos.x, worldPos.y);
@@ -169,9 +170,9 @@ int main()
                                                                         return Force();
 
                                                                     Vec2 posDiff = *posPointer - state.position;
-                                                                    Vec2 desiredVel = posDiff / 0.05f;
+                                                                    Vec2 desiredVel = posDiff / (1.0f / DEFAULT_CALC_FREQ);
                                                                     Vec2 deltaV = desiredVel - state.velocity;
-                                                                    Vec2 approxForce = deltaV * state.mass / 0.05f;
+                                                                    Vec2 approxForce = deltaV * state.mass / (1.0f / DEFAULT_CALC_FREQ);
                                                                     return Force(Vec2(0.0f, 0.0f), approxForce); }));
 
                                     break;
@@ -215,6 +216,8 @@ int main()
                             newCircle->body->restitution = circleSettings->restitution;
 
                             world.addObject(newCircle);
+
+                            selectedObject = newCircle;
                         }
                         else if (type == DRAW_RECTANGLE)
                         {
@@ -228,6 +231,8 @@ int main()
 
                             newRect->setStatic(rectSettings->isStatic);
                             world.addObject(newRect);
+
+                            selectedObject = newRect;
                         }
                         else if (type == ERASE)
                         {
@@ -379,7 +384,11 @@ int main()
             ImGui::Text("Net Force: %s N", (selectedObject->body->acceleration * selectedObject->body->mass).toString().c_str());
             ImGui::Text("Acceleration: %s m/s²", selectedObject->body->acceleration.toString().c_str());
             ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
-            ImGui::Text("Position: %s m", selectedObject->body->position.toString().c_str());
+            ImGui::Text("Position: %s m", standardizePosition(selectedObject->body->position).toString().c_str());
+            ImGui::Separator();
+            ImGui::Text("Kinetic Energy: %.2f J", selectedObject->body->kineticEnergy);
+            ImGui::Text("Gravitational Potential: %.2f J", selectedObject->body->gravitationalPotential);
+            ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->kineticEnergy + selectedObject->body->gravitationalPotential);
             ImGui::Separator();
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
             ImGui::DragFloat("Static Friction", &selectedObject->body->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
@@ -400,6 +409,7 @@ int main()
             {
                 world.setODESolver(static_cast<SolverType>(currentSolver));
             }
+            ImGui::DragFloat("Calculation Frequency", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
             ImGui::End();
         }
 
