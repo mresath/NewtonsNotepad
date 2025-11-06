@@ -17,6 +17,9 @@ public:
     Vec2 gravity = DEFAULT_GRAVITY;                 // Default gravity pointing downwards
     float airDensity = DEFAULT_AIR_DENSITY;         // Air density for drag calculations
 
+    // World Variables
+    float totalEnergy = 0.0f; // Total energy in the world
+
     // Constructors & Destructor
     World();
     ~World();

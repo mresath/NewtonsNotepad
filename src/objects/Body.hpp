@@ -12,6 +12,7 @@ struct Body
 
     float kineticEnergy = 0.0f;
     float gravitationalPotential = 0.0f;
+    float totalEnergy = 0.0f;
 
     // Physical Properties
     float mass;

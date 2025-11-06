@@ -35,6 +35,18 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     case RK4:
         solver = new RK4Solver(this);
         break;
+    case VERLET:
+        // solver = new VerletSolver(this);
+        break;
+    case DOPRI5:
+        // solver = new DOPRI5Solver(this);
+        break;
+    case AB:
+        // solver = new ABSolver(this);
+        break;
+    case AM:    
+        // solver = new AMSolver(this);
+        break;
     }
 }
 
@@ -65,6 +77,7 @@ void Object::setStatic(bool isStatic)
 void Object::setConstant()
 {
     isSelectable = false;
+    body->restitution = 1.0f;
     setStatic(true);
 }
 
@@ -120,6 +133,18 @@ void Object::switchSolver(SolverType type)
         newSolver = new RK4Solver(this);
         ;
         break;
+    case VERLET:
+        // newSolver = new VerletSolver(this);
+        break;
+    case DOPRI5:
+        // newSolver = new DOPRI5Solver(this);
+        break;
+    case AB:
+        // newSolver = new ABSolver(this);
+        break;
+    case AM:    
+        // newSolver = new AMSolver(this);
+        break;
     }
     if (newSolver)
     {
@@ -133,6 +158,8 @@ void Object::calculateEnergies()
 {
     body->kineticEnergy = 0.5f * body->mass * body->velocity.lengthSquared();
     body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;
+
+    body->totalEnergy = body->kineticEnergy + body->gravitationalPotential;
 }
 
 void Object::update(float dt)

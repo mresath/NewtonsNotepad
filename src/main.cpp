@@ -388,7 +388,7 @@ int main()
             ImGui::Separator();
             ImGui::Text("Kinetic Energy: %.2f J", selectedObject->body->kineticEnergy);
             ImGui::Text("Gravitational Potential: %.2f J", selectedObject->body->gravitationalPotential);
-            ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->kineticEnergy + selectedObject->body->gravitationalPotential);
+            ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->totalEnergy);
             ImGui::Separator();
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
             ImGui::DragFloat("Static Friction", &selectedObject->body->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
@@ -403,7 +403,7 @@ int main()
             ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
             ImGui::DragFloat("Gravity", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
             ImGui::DragFloat("Air Density", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
-            static const char *solverItems[] = {"Euler", "RK2", "RK4"};
+            static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "AM"};
             static int currentSolver = static_cast<int>(world.getODESolver());
             if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
             {

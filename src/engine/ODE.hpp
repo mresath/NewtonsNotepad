@@ -10,6 +10,10 @@ enum SolverType : unsigned short
     EULER,
     RK2,
     RK4,
+    VERLET,
+    DOPRI5,
+    AB,
+    AM
 };
 
 inline std::string solverTypeToString(SolverType type)
@@ -22,6 +26,14 @@ inline std::string solverTypeToString(SolverType type)
         return "RK2";
     case RK4:
         return "RK4";
+    case DOPRI5:
+        return "DOPRI5";
+    case VERLET:
+        return "Verlet";
+    case AB:
+        return "AB";
+    case AM:
+        return "AM";
     default:
         return "Unknown";
     }
@@ -59,6 +71,49 @@ class RK4Solver : public ODESolver
 {
 public:
     RK4Solver(Object *initialState) : ODESolver(initialState) {}
+    void step(float dt) override;
+    Body simulate(float dt) override;
+};
+
+class VerletSolver : public ODESolver
+{
+private:
+    Vec2 previousPosition;
+    bool isFirstStep = true;
+public:
+    VerletSolver(Object *initialState) : ODESolver(initialState) {}
+    void step(float dt) override;
+    Body simulate(float dt) override;
+};
+
+class DOPRI5Solver : public ODESolver
+{
+public:
+    DOPRI5Solver(Object *initialState) : ODESolver(initialState) {}
+    void step(float dt) override;
+    Body simulate(float dt) override;
+};
+
+class ABSolver : public ODESolver
+{
+private:
+    std::vector<Body> previousStates;
+public:
+    ABSolver(Object *initialState) : ODESolver(initialState) {
+        previousStates.reserve(5);
+    }
+    void step(float dt) override;
+    Body simulate(float dt) override;
+};
+
+class AMSolver : public ODESolver
+{
+private:
+    std::vector<Body> previousStates;
+public:
+    AMSolver(Object *initialState) : ODESolver(initialState) {
+        previousStates.reserve(5);
+    }
     void step(float dt) override;
     Body simulate(float dt) override;
 };
