@@ -386,10 +386,13 @@ int main()
             ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
             ImGui::Text("Position: %s m", standardizePosition(selectedObject->body->position).toString().c_str());
             ImGui::Separator();
-            ImGui::Text("Net Torque: %.2f Nm", (selectedObject->body->angularAcceleration * selectedObject->body->momentOfInertia));
+            ImGui::Text("Net Torque: %.2f N·m", (selectedObject->body->angularAcceleration * selectedObject->body->momentOfInertia));
             ImGui::Text("Angular Acceleration: %.2f rad/s²", selectedObject->body->angularAcceleration);
             ImGui::Text("Angular Velocity: %.2f rad/s", selectedObject->body->angularVelocity);
             ImGui::Text("Rotation: %.2f rad", selectedObject->body->rotation);
+            ImGui::Separator();
+            ImGui::Text("Momentum: %s kg·m/s", selectedObject->body->momentum.toString().c_str());
+            ImGui::Text("Angular Momentum: %.2f kg·m²/s", selectedObject->body->angularMomentum);
             ImGui::Separator();
             ImGui::Text("Translational Energy: %.2f J", selectedObject->body->kineticEnergy);
             ImGui::Text("Rotational Energy: %.2f J", selectedObject->body->rotationalKineticEnergy);

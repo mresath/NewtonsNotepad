@@ -161,6 +161,9 @@ void Object::switchSolver(SolverType type)
 
 void Object::calculateEnergies()
 {
+    body->momentum = body->velocity * body->mass;
+    body->angularMomentum = body->momentOfInertia * body->angularVelocity;
+
     body->kineticEnergy = 0.5f * body->mass * body->velocity.lengthSquared();
     body->rotationalKineticEnergy = 0.5f * body->momentOfInertia * body->angularVelocity * body->angularVelocity;
     body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;

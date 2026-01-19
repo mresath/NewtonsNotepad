@@ -16,7 +16,10 @@ struct Body
     float angularAcceleration = 0.0f;
     float netTorque = 0.0f;
 
-    // Energies
+    // Energies and Momenta
+    Vec2 momentum = Vec2(0.0f, 0.0f);
+    float angularMomentum = 0.0f;
+
     float kineticEnergy = 0.0f;
     float rotationalKineticEnergy = 0.0f;
     float gravitationalPotential = 0.0f;
