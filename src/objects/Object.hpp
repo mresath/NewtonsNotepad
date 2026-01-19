@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <math.h>
 #include <vector>
+#include <tuple>
 #include "objects/Body.hpp"
 #include "objects/Force.hpp"
 #include "math/Util.hpp"
@@ -56,7 +57,7 @@ public:
 
     const std::vector<ForceSource *> &getForces() const;
 
-    const Force getNetForce() const;
+    const std::tuple<Force, float> getNetForce() const;
 
     void switchSolver(SolverType type);
 

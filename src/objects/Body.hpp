@@ -10,13 +10,23 @@ struct Body
     Vec2 acceleration;
     Vec2 netForce;
 
+    // Rotational Motion - Counterclockwise positive
+    float rotation = 0.0f;       // In radians
+    float angularVelocity = 0.0f; // In radians per second
+    float angularAcceleration = 0.0f;
+    float netTorque = 0.0f;
+
+    // Energies
     float kineticEnergy = 0.0f;
+    float rotationalKineticEnergy = 0.0f;
     float gravitationalPotential = 0.0f;
     float totalEnergy = 0.0f;
 
     // Physical Properties
     float mass;
     float invMass; // Inverse of mass to avoid unnecessary divisions
+    float momentOfInertia = 0.0f;
+    float invMomentOfInertia = 0.0f;
 
     // Other Properties
     float dragCoefficient = 0.47f;
@@ -25,13 +35,9 @@ struct Body
     float restitution = 0.7f;
 
     // Constructors
-    Body(const Vec2 &position, float mass) : position(position), mass(mass)
+    Body(const Vec2 &position, float mass, float momentOfInertia) : position(position), mass(mass), momentOfInertia(momentOfInertia)
     {
         this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;
+        this->invMomentOfInertia = (momentOfInertia == 0.0f) ? 0.0f : 1.0f / momentOfInertia;
     }
-
-    // Methods
-    void applyForce(const Vec2 &force) {
-        netForce += force;
-    };
 };

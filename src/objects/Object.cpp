@@ -22,7 +22,11 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
 
     shape->setFillColor(sf::Color::White);
 
-    body = new Body(position, density * volume);
+    float mass = density * volume;
+    float inertia = type == CIRCLE ? 0.5f * mass * dimensions.x * dimensions.x
+                                 : (1.0f / 12.0f) * mass * (dimensions.x * dimensions.x + dimensions.y * dimensions.y);
+
+    body = new Body(position, mass, inertia);
 
     switch (DEFAULT_SOLVER)
     {
@@ -105,17 +109,18 @@ const std::vector<ForceSource *> &Object::getForces() const
     return forceSources;
 }
 
-const Force Object::getNetForce() const
+const std::tuple<Force, float> Object::getNetForce() const
 {
     Vec2 netForce(0.0f, 0.0f);
-    Vec2 netTorquePoint(0.0f, 0.0f);
+    float netTorque = 0.0f;
     for (const auto &source : forceSources)
     {
-        Force f = source->calculateForce(*body);
-        netForce += f.force;
-        netTorquePoint += f.position * f.force.length();
+        std::tuple<Force, float> ft = source->calculateForce(*body);
+
+        netForce += std::get<0>(ft).force;
+        netTorque += std::get<1>(ft);
     }
-    return Force(netTorquePoint, netForce);
+    return std::make_tuple(Force(Vec2(0.0f, 0.0f), netForce), netTorque);
 }
 
 void Object::switchSolver(SolverType type)
@@ -157,9 +162,10 @@ void Object::switchSolver(SolverType type)
 void Object::calculateEnergies()
 {
     body->kineticEnergy = 0.5f * body->mass * body->velocity.lengthSquared();
+    body->rotationalKineticEnergy = 0.5f * body->momentOfInertia * body->angularVelocity * body->angularVelocity;
     body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;
 
-    body->totalEnergy = body->kineticEnergy + body->gravitationalPotential;
+    body->totalEnergy = body->kineticEnergy + body->rotationalKineticEnergy + body->gravitationalPotential;
 }
 
 void Object::update(float dt)
@@ -172,13 +178,20 @@ void Object::update(float dt)
         Vec2 *maxPixels = new Vec2(WORLD_WIDTH / 2, DEF_HEIGHT - HALF_WALL_THICKNESS);
         body->position.constrain(*pixelsToMeters(minPixels), *pixelsToMeters(maxPixels));
 
+        body->rotation = std::fmod(body->rotation, 2.0f * M_PI);
+
         body->netForce = Vec2(0.0f, 0.0f);
+        body->netTorque = 0.0f;
+
+        delete minPixels;
+        delete maxPixels;
     }
 
     calculateEnergies();
 
     Vec2 *pos = metersToPixels(&body->position);
     shape->setPosition(sf::Vector2f(pos->x, pos->y));
+    shape->setRotation(sf::radians(body->rotation));
     delete pos;
 }
 

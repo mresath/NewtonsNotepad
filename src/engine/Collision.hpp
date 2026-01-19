@@ -5,6 +5,8 @@
 #include "math/Vec2.hpp"
 #include "objects/Object.hpp"
 
+// TODO: Update collision detection to support rotated rectangles
+
 // Helper structures for collision information
 struct CollisionInfo
 {
@@ -192,10 +194,11 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
     bodyB->velocity += impulse * invMassB;
 
     // Apply normal force
-    // TODO: convert to variable force sources
+    // TODO: Update location of force application based on contact point
     Vec2 fNormal = info.normal * dot(bodyA->netForce - bodyB->netForce, info.normal) * -1;
     objA->applyForce(ForceSource(fmt::format("normal%d", objB->getID()), Force(Vec2(0, 0), fNormal)));
     objB->applyForce(ForceSource(fmt::format("normal%d", objA->getID()), Force(Vec2(0, 0), fNormal * -1)));
 
     // Apply friction force
+    // TODO
 }

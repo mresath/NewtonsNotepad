@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <tuple>
 #include "math/Vec2.hpp"
 #include "objects/Object.hpp"
 
@@ -32,17 +33,32 @@ public:
         isConstant = false;
     }
 
-    Force calculateForce(const Body &state) const
+    std::tuple<Force, float> calculateForce(const Body &state) const
     {
+        Force netForce;
+
         if (isConstant)
         {
-            return constantForce;
+            netForce = constantForce;
         }
         else if (variableForceFunc != nullptr)
         {
-            return variableForceFunc(state);
+            netForce = variableForceFunc(state);
         }
-        return Force();
+
+        Vec2 dist = netForce.position - Vec2(0.0f, 0.0f);
+
+        if (dist.lengthSquared() == 0.0f)
+        {
+            return std::make_tuple(netForce, 0.0f);
+        }
+
+        Vec2 radialNormal = dist.normalized();
+
+        Vec2 radialForce = radialNormal * dot(netForce.force, radialNormal);
+        Vec2 tangentialForce = netForce.force - radialForce;
+
+        return std::make_tuple(Force(Vec2(0.0f, 0.0f), radialForce), dist.length() * tangentialForce.length());
     }
 
     void setForce(const Force &force)
