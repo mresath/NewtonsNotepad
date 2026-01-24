@@ -37,16 +37,22 @@ inline sf::Texture *getToolTexture(ToolType type)
         loaded = texture->loadFromFile("assets/hand.png");
         break;
     case PULL:
+        loaded = texture->loadFromFile("assets/pull.png");
         break;
     case PUSH:
+        loaded = texture->loadFromFile("assets/push.png");
         break;
     case DRAW_CIRCLE:
+        loaded = texture->loadFromFile("assets/circle.png");
         break;
     case DRAW_ROPE:
+        loaded = texture->loadFromFile("assets/rope.png");
         break;
     case DRAW_SPRING:
+        loaded = texture->loadFromFile("assets/spring.png");
         break;
     case ERASE:
+        loaded = texture->loadFromFile("assets/trash.png");
         break;
     default:
         break;

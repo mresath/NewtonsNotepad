@@ -10,6 +10,11 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     {
         shape = new sf::CircleShape(len->x);
         shape->setOrigin(sf::Vector2f(len->x, len->x));
+
+        sf::Texture *texture = new sf::Texture();
+        texture->loadFromFile("assets/ball.png");
+        shape->setTexture(texture);
+
         this->volume = M_PI * dimensions.x * dimensions.x;
     }
     else if (type == RECTANGLE)
@@ -24,7 +29,7 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
 
     float mass = density * volume;
     float inertia = type == CIRCLE ? 0.5f * mass * dimensions.x * dimensions.x
-                                 : (1.0f / 12.0f) * mass * (dimensions.x * dimensions.x + dimensions.y * dimensions.y);
+                                   : (1.0f / 12.0f) * mass * (dimensions.x * dimensions.x + dimensions.y * dimensions.y);
 
     body = new Body(position, mass, inertia);
 
@@ -48,7 +53,7 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     case AB:
         // solver = new ABSolver(this);
         break;
-    case AM:    
+    case AM:
         // solver = new AMSolver(this);
         break;
     }
@@ -147,7 +152,7 @@ void Object::switchSolver(SolverType type)
     case AB:
         // newSolver = new ABSolver(this);
         break;
-    case AM:    
+    case AM:
         // newSolver = new AMSolver(this);
         break;
     }
@@ -203,14 +208,17 @@ void Object::draw(sf::RenderWindow *window)
     window->draw(*shape);
 }
 
-int Object::getID() const {
+int Object::getID() const
+{
     return id;
 }
 
-void Object::setID(int newID) {
+void Object::setID(int newID)
+{
     id = newID;
 }
 
-void Object::setGravityPointer(Vec2* gravity) {
+void Object::setGravityPointer(Vec2 *gravity)
+{
     gravityPtr = gravity;
 }
