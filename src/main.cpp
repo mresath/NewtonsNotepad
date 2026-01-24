@@ -211,28 +211,13 @@ int main()
                             newCircle->setStatic(circleSettings->isStatic);
 
                             newCircle->body->dragCoefficient = circleSettings->dragCoefficient;
-                            newCircle->body->staticFriction = circleSettings->staticFriction;
-                            newCircle->body->kineticFriction = circleSettings->kineticFriction;
+                            newCircle->body->liftCoefficient = circleSettings->liftCoefficient;
+                            newCircle->body->frictionCoefficient = circleSettings->frictionCoefficient;
                             newCircle->body->restitution = circleSettings->restitution;
 
                             world.addObject(newCircle);
 
                             selectedObject = newCircle;
-                        }
-                        else if (type == DRAW_RECTANGLE)
-                        {
-                            RectSettings *rectSettings = static_cast<RectSettings *>(tools.settings);
-                            Object *newRect = new Object(metersPos, Vec2(rectSettings->width, rectSettings->height), rectSettings->density, RECTANGLE);
-
-                            newRect->body->dragCoefficient = rectSettings->dragCoefficient;
-                            newRect->body->staticFriction = rectSettings->staticFriction;
-                            newRect->body->kineticFriction = rectSettings->kineticFriction;
-                            newRect->body->restitution = rectSettings->restitution;
-
-                            newRect->setStatic(rectSettings->isStatic);
-                            world.addObject(newRect);
-
-                            selectedObject = newRect;
                         }
                         else if (type == ERASE)
                         {
@@ -323,33 +308,18 @@ int main()
                 ImGui::DragFloat("Strength", &static_cast<PushSettings *>(tools.settings)->forceMagnitude, FORCE_STEP, MIN_FORCE, MAX_FORCE);
             }
         }
-        else if (type == DRAW_CIRCLE || type == DRAW_RECTANGLE)
+        else if (type == DRAW_CIRCLE)
         {
             ImGui::Text("Left Click to place object");
             ImGui::Separator();
-            if (type == DRAW_CIRCLE)
-            {
-                CircleSettings *circleSettings = static_cast<CircleSettings *>(tools.settings);
-                ImGui::Checkbox("Is Static", &circleSettings->isStatic);
-                ImGui::DragFloat("Radius", &circleSettings->radius, LENGTH_STEP, MIN_LENGTH, MAX_LENGTH);
-                ImGui::DragFloat("Density", &circleSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
-                ImGui::DragFloat("Drag Coefficient", &circleSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
-                ImGui::DragFloat("Static Friction", &circleSettings->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
-                ImGui::DragFloat("Kinetic Friction", &circleSettings->kineticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
-                ImGui::DragFloat("Restitution", &circleSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
-            }
-            else if (type == DRAW_RECTANGLE)
-            {
-                RectSettings *rectSettings = static_cast<RectSettings *>(tools.settings);
-                ImGui::Checkbox("Is Static", &rectSettings->isStatic);
-                ImGui::DragFloat("Width", &rectSettings->width, LENGTH_STEP, MIN_LENGTH * 2, MAX_LENGTH * 2);
-                ImGui::DragFloat("Height", &rectSettings->height, LENGTH_STEP, MIN_LENGTH * 2, MAX_LENGTH * 2);
-                ImGui::DragFloat("Density", &rectSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
-                ImGui::DragFloat("Drag", &rectSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
-                ImGui::DragFloat("Static Friction", &rectSettings->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
-                ImGui::DragFloat("Kinetic Friction", &rectSettings->kineticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
-                ImGui::DragFloat("Restitution", &rectSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
-            }
+            CircleSettings *circleSettings = static_cast<CircleSettings *>(tools.settings);
+            ImGui::Checkbox("Is Static", &circleSettings->isStatic);
+            ImGui::DragFloat("Radius", &circleSettings->radius, LENGTH_STEP, MIN_LENGTH, MAX_LENGTH);
+            ImGui::DragFloat("Density", &circleSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
+            ImGui::DragFloat("Drag Coefficient", &circleSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
+            ImGui::DragFloat("Lift Coefficient", &circleSettings->liftCoefficient, LIFT_STEP, MIN_LIFT, MAX_LIFT);
+            ImGui::DragFloat("Friction Coefficient", &circleSettings->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
+            ImGui::DragFloat("Restitution", &circleSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
         }
         else if (type == DRAW_ROPE || type == DRAW_SPRING)
         {
@@ -381,13 +351,9 @@ int main()
             }
             ImGui::Text("Mass: %.2f kg", selectedObject->body->mass);
             ImGui::Separator();
-            ImGui::Text("Net Force: %s N", (selectedObject->body->acceleration * selectedObject->body->mass).toString().c_str());
-            ImGui::Text("Acceleration: %s m/s²", selectedObject->body->acceleration.toString().c_str());
             ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
             ImGui::Text("Position: %s m", standardizePosition(selectedObject->body->position).toString().c_str());
             ImGui::Separator();
-            ImGui::Text("Net Torque: %.2f N·m", (selectedObject->body->angularAcceleration * selectedObject->body->momentOfInertia));
-            ImGui::Text("Angular Acceleration: %.2f rad/s²", selectedObject->body->angularAcceleration);
             ImGui::Text("Angular Velocity: %.2f rad/s", selectedObject->body->angularVelocity);
             ImGui::Text("Rotation: %.2f rad", selectedObject->body->rotation);
             ImGui::Separator();
@@ -400,8 +366,7 @@ int main()
             ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->totalEnergy);
             ImGui::Separator();
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
-            ImGui::DragFloat("Static Friction", &selectedObject->body->staticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
-            ImGui::DragFloat("Kinetic Friction", &selectedObject->body->kineticFriction, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
+            ImGui::DragFloat("Friction Coefficient", &selectedObject->body->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
             ImGui::DragFloat("Restitution", &selectedObject->body->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
             ImGui::End();
         }

@@ -32,9 +32,9 @@ struct Body
     float invMomentOfInertia = 0.0f;
 
     // Other Properties
-    float dragCoefficient = 0.47f;
-    float staticFriction = 0.5f;
-    float kineticFriction = 0.3f;
+    float dragCoefficient = 0.25f;
+    float liftCoefficient = 0.00f;
+    float frictionCoefficient = 0.5f;
     float restitution = 0.7f;
 
     // Constructors

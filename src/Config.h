@@ -47,6 +47,11 @@
 #define LENGTH_STEP 0.05f
 #define DEFAULT_LENGTH 0.25f
 
+#define MIN_ANGLE 0.0f
+#define MAX_ANGLE 360.0f
+#define ANGLE_STEP 5.0f
+#define DEFAULT_ANGLE 0.0f
+
 #define MIN_DENSITY 0.1f
 #define MAX_DENSITY 100.0f
 #define DENSITY_STEP 0.5f
@@ -63,6 +68,11 @@
 #define MAX_DRAG 1.0f
 #define DRAG_STEP 0.02f
 #define DEFAULT_DRAG 0.0f
+
+#define MIN_LIFT 0.0f
+#define MAX_LIFT 1.0f
+#define LIFT_STEP 0.02f
+#define DEFAULT_LIFT 0.0f
 
 #define MIN_FRICTION 0.0f
 #define MAX_FRICTION 1.0f

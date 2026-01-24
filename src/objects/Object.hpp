@@ -40,6 +40,7 @@ public:
     bool isStatic = false;
     bool doGravity = true;
     bool doDrag = true;
+    bool doMagnus = true;
     bool doFriction = true;
     bool canApplyFriction = true;
 

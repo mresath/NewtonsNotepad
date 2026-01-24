@@ -53,12 +53,9 @@ public:
             return std::make_tuple(netForce, 0.0f);
         }
 
-        Vec2 radialNormal = dist.normalized();
-
-        Vec2 radialForce = radialNormal * dot(netForce.force, radialNormal);
-        Vec2 tangentialForce = netForce.force - radialForce;
-
-        return std::make_tuple(Force(Vec2(0.0f, 0.0f), radialForce), dist.length() * tangentialForce.length());
+        float torque = cross(dist, netForce.force);
+        
+        return std::make_tuple(netForce, torque);
     }
 
     void setForce(const Force &force)

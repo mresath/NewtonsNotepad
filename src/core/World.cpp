@@ -51,12 +51,15 @@ void World::update(float dt)
                 Vec2 gForce = *gravityPointer * state.mass;
                 return Force(Vec2(0, 0), gForce); });
             object->applyForce(gravitySource);
+        } else {
+            object->deleteForce("gravity");
         }
 
         if (object->doDrag && body->dragCoefficient != 0.0f)
         {
             float airDensity = this->airDensity;
-            float area = object->dimensions.x;
+            float area = M_PI * object->dimensions.x;
+
             ForceSource dragSource("drag", [airDensity, area](Body state)
                                    {
                 Vec2 df = state.velocity * -1.0f;
@@ -67,8 +70,27 @@ void World::update(float dt)
                     float dragMagnitude = 0.5f * airDensity * speedSq * area * state.dragCoefficient;
                     df *= dragMagnitude;
                 }
-                return Force(Vec2(0, 0), df); });
+                return Force(Vec2(0, 0), df); 
+            });
             object->applyForce(dragSource);
+        } else {
+            object->deleteForce("drag");
+        }
+
+        if (object->doMagnus && body->liftCoefficient != 0.0f)
+        {
+            float airDensity = this->airDensity;
+            float area = M_PI * object->dimensions.x;
+            ForceSource magnusSource("magnus", [airDensity, area](Body state)
+                                   {
+                Vec2 liftDir = state.velocity.perpendicular().normalized();
+                float speedSq = state.velocity.lengthSquared();
+                float magnusMagnitude = 0.5f * airDensity * speedSq * area * state.liftCoefficient * state.angularVelocity;
+                Vec2 liftForce = liftDir * magnusMagnitude;
+                return Force(Vec2(0, 0), liftForce); });
+            object->applyForce(magnusSource);
+        } else {
+            object->deleteForce("magnus");
         }
     }
 

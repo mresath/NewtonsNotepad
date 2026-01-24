@@ -48,9 +48,6 @@ void Tools::setCurrentTool(Tool *tool)
         case DRAW_CIRCLE:
             settings = new CircleSettings();
             break;
-        case DRAW_RECTANGLE:
-            settings = new RectSettings();
-            break;
         case DRAW_ROPE:
             settings = new RopeSettings();
             break;

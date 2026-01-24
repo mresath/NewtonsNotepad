@@ -81,12 +81,34 @@ struct Vec2
         return std::atan2(y, x);
     }
 
+    void rotate(float angleRad)
+    {
+        float cosA = std::cos(angleRad);
+        float sinA = std::sin(angleRad);
+        float newX = x * cosA - y * sinA;
+        float newY = x * sinA + y * cosA;
+        x = newX;
+        y = newY;
+    }
+
+    Vec2 rotated(float angleRad) const
+    {
+        float cosA = std::cos(angleRad);
+        float sinA = std::sin(angleRad);
+        return Vec2(x * cosA - y * sinA, x * sinA + y * cosA);
+    }
+
     Vec2 normalized() const
     {
         float len = length();
         if (len > 0.0f)
             return Vec2(x / len, y / len);
         return Vec2(0, 0);
+    }
+
+    Vec2 perpendicular() const
+    {
+        return Vec2(-y, x);
     }
 
     Vec2 constrained(Vec2 min, Vec2 max) const
@@ -108,7 +130,14 @@ struct Vec2
     }
 };
 
+// Dot product of two vectors
 inline float dot(const Vec2 &a, const Vec2 &b)
 {
     return a.x * b.x + a.y * b.y;
+}
+
+// 2D cross product (returns scalar magnitude of z-component)
+inline float cross(const Vec2 &a, const Vec2 &b)
+{
+    return a.x * b.y - a.y * b.x;
 }

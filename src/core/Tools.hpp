@@ -19,19 +19,8 @@ struct CircleSettings : ToolSettings {
     float radius = DEFAULT_LENGTH;
     float density = DEFAULT_DENSITY;
     float dragCoefficient = DEFAULT_DRAG;
-    float staticFriction = DEFAULT_FRICTION;
-    float kineticFriction = DEFAULT_FRICTION;
-    float restitution = DEFAULT_RESTITUTION;
-};
-
-struct RectSettings : ToolSettings {
-    bool isStatic = false;
-    float width = DEFAULT_LENGTH * 2;
-    float height = DEFAULT_LENGTH * 2;
-    float density = DEFAULT_DENSITY;
-    float dragCoefficient = DEFAULT_DRAG;
-    float staticFriction = DEFAULT_FRICTION;
-    float kineticFriction = DEFAULT_FRICTION;
+    float liftCoefficient = DEFAULT_LIFT;
+    float frictionCoefficient = DEFAULT_FRICTION;
     float restitution = DEFAULT_RESTITUTION;
 };
 

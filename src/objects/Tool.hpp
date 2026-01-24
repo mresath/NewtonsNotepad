@@ -13,7 +13,6 @@ enum ToolType
     PULL,
     PUSH,
     DRAW_CIRCLE,
-    DRAW_RECTANGLE,
     DRAW_ROPE,
     DRAW_SPRING,
     ERASE,
@@ -42,8 +41,6 @@ inline sf::Texture *getToolTexture(ToolType type)
     case PUSH:
         break;
     case DRAW_CIRCLE:
-        break;
-    case DRAW_RECTANGLE:
         break;
     case DRAW_ROPE:
         break;
@@ -85,8 +82,6 @@ struct Tool
             return "push";
         case DRAW_CIRCLE:
             return "draw_circle";
-        case DRAW_RECTANGLE:
-            return "draw_rectangle";
         case DRAW_ROPE:
             return "draw_rope";
         case DRAW_SPRING:
@@ -112,8 +107,6 @@ struct Tool
             return "Push";
         case DRAW_CIRCLE:
             return "Draw Circle";
-        case DRAW_RECTANGLE:
-            return "Draw Rectangle";
         case DRAW_ROPE:
             return "Draw Rope";
         case DRAW_SPRING:
