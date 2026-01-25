@@ -522,7 +522,7 @@ int main()
         {
             ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
             ImGui::DragFloat("Gravity (m/s²)", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
-            ImGui::DragFloat("Air Density (kg/m³)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
+            ImGui::DragFloat("Air Density (kg/m²)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
             static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "AM"};
             static int currentSolver = static_cast<int>(world.getODESolver());
             if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
