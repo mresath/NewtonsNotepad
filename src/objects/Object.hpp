@@ -55,6 +55,7 @@ public:
     void applyForce(const ForceSource &force);
 
     void deleteForce(const std::string &name);
+    void clearForces();
 
     const std::vector<ForceSource *> &getForces() const;
 
@@ -63,9 +64,11 @@ public:
     void switchSolver(SolverType type);
 
     void calculateEnergies();
+    void zeroEnergies();
     void update(float dt);
 
     void draw(sf::RenderWindow *window);
+    void draw(sf::RenderWindow *window, bool showAttachmentPoints);
 
     int getID() const;
     void setID(int newID);

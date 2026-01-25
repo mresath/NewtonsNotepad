@@ -24,11 +24,15 @@ struct CircleSettings : ToolSettings {
     float restitution = DEFAULT_RESTITUTION;
 };
 
-struct RopeSettings : ToolSettings {};
+struct RopeSettings : ToolSettings {
+    float segmentCount = DEFAULT_SEGMENTS;
+    float totalLength = MAX_PERCENTAGE;
+};
 
 struct SpringSettings : ToolSettings {
-    float springConstant = DEFAULT_SPRING_CONSTANT;
-    float restLength = DEFAULT_LENGTH;
+    float stiffness = DEFAULT_STIFFNESS;
+    float damping = DEFAULT_DAMPING;
+    float restingLength = MAX_PERCENTAGE;
 };
 
 class Tools

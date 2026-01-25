@@ -98,6 +98,8 @@ void Object::applyForce(const ForceSource &force)
 
 void Object::deleteForce(const std::string &name)
 {
+    if (forceSources.empty())
+        return;
     for (auto it = forceSources.begin(); it != forceSources.end(); ++it)
     {
         if ((*it)->name == name)
@@ -107,6 +109,15 @@ void Object::deleteForce(const std::string &name)
             break;
         }
     }
+}
+
+void Object::clearForces()
+{
+    for (auto &source : forceSources)
+    {
+        delete source;
+    }
+    forceSources.clear();
 }
 
 const std::vector<ForceSource *> &Object::getForces() const
@@ -173,7 +184,16 @@ void Object::calculateEnergies()
     body->rotationalKineticEnergy = 0.5f * body->momentOfInertia * body->angularVelocity * body->angularVelocity;
     body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;
 
-    body->totalEnergy = body->kineticEnergy + body->rotationalKineticEnergy + body->gravitationalPotential;
+    body->totalEnergy = body->kineticEnergy + body->rotationalKineticEnergy + body->gravitationalPotential + body->springPotential;
+}
+
+void Object::zeroEnergies()
+{
+    body->kineticEnergy = 0.0f;
+    body->rotationalKineticEnergy = 0.0f;
+    body->gravitationalPotential = 0.0f;
+    body->springPotential = 0.0f;
+    body->totalEnergy = 0.0f;
 }
 
 void Object::update(float dt)
@@ -205,7 +225,20 @@ void Object::update(float dt)
 
 void Object::draw(sf::RenderWindow *window)
 {
+    draw(window, false);
+}
+
+void Object::draw(sf::RenderWindow *window, bool showAttachmentPoints)
+{
     window->draw(*shape);
+    if (isSelectable && showAttachmentPoints)
+    {
+        sf::CircleShape attachmentPointShape(ATTACHMENT_POINT_RADIUS);
+        attachmentPointShape.setFillColor(sf::Color::Green);
+        attachmentPointShape.setPosition(shape->getPosition());
+        attachmentPointShape.setOrigin(sf::Vector2f(ATTACHMENT_POINT_RADIUS, ATTACHMENT_POINT_RADIUS));
+        window->draw(attachmentPointShape);
+    }
 }
 
 int Object::getID() const

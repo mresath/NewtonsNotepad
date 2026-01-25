@@ -4,6 +4,11 @@
 World::World() : gravity(DEFAULT_GRAVITY), airDensity(DEFAULT_AIR_DENSITY) {}
 World::~World()
 {
+    for (Connector *connector : connectors)
+    {
+        delete connector;
+    }
+
     for (Object *object : objects)
     {
         delete object;
@@ -22,7 +27,21 @@ void World::removeObject(size_t index)
 {
     if (index < objects.size())
     {
+        Object *objToRemove = objects[index];
+
+        objToRemove->clearForces();
+
         objects.erase(objects.begin() + index);
+
+        for (Connector *connector : connectors)
+        {
+            if (connector->isConnectedTo(objToRemove))
+            {
+                connectors.erase(std::remove(connectors.begin(), connectors.end(), connector), connectors.end());
+                delete connector;
+            }
+        }
+        delete objToRemove;
     }
 }
 
@@ -34,6 +53,31 @@ void World::clearObjects()
     }
     objects.clear();
     nextObjectID = 0;
+}
+
+void World::addConnector(Connector *connector)
+{
+    connector->setID(nextConnectorID++);
+    connector->connectForces();
+    connectors.push_back(connector);
+}
+
+void World::removeConnector(size_t index)
+{
+    if (index < connectors.size())
+    {
+        delete connectors[index];
+        connectors.erase(connectors.begin() + index);
+    }
+}
+
+void World::clearConnectors()
+{
+    for (Connector *connector : connectors)
+    {
+        delete connector;
+    }
+    connectors.clear();
 }
 
 void World::update(float dt)
@@ -51,7 +95,9 @@ void World::update(float dt)
                 Vec2 gForce = *gravityPointer * state.mass;
                 return Force(Vec2(0, 0), gForce); });
             object->applyForce(gravitySource);
-        } else {
+        }
+        else
+        {
             object->deleteForce("gravity");
         }
 
@@ -70,10 +116,11 @@ void World::update(float dt)
                     float dragMagnitude = 0.5f * airDensity * speedSq * area * state.dragCoefficient;
                     df *= dragMagnitude;
                 }
-                return Force(Vec2(0, 0), df); 
-            });
+                return Force(Vec2(0, 0), df); });
             object->applyForce(dragSource);
-        } else {
+        }
+        else
+        {
             object->deleteForce("drag");
         }
 
@@ -82,14 +129,16 @@ void World::update(float dt)
             float airDensity = this->airDensity;
             float area = M_PI * object->dimensions.x;
             ForceSource magnusSource("magnus", [airDensity, area](Body state)
-                                   {
+                                     {
                 Vec2 liftDir = state.velocity.perpendicular().normalized();
                 float speedSq = state.velocity.lengthSquared();
                 float magnusMagnitude = 0.5f * airDensity * speedSq * area * state.liftCoefficient * state.angularVelocity;
                 Vec2 liftForce = liftDir * magnusMagnitude;
                 return Force(Vec2(0, 0), liftForce); });
             object->applyForce(magnusSource);
-        } else {
+        }
+        else
+        {
             object->deleteForce("magnus");
         }
     }
@@ -127,15 +176,30 @@ void World::update(float dt)
 
 void World::draw(sf::RenderWindow *window)
 {
+    draw(window, false);
+}
+
+void World::draw(sf::RenderWindow *window, bool showAttachmentPoints)
+{
     for (Object *object : objects)
     {
-        object->draw(window);
+        object->draw(window, showAttachmentPoints);
+    }
+
+    for (Connector *connector : connectors)
+    {
+        connector->draw(window);
     }
 }
 
 const std::vector<Object *> &World::getObjects() const
 {
     return objects;
+}
+
+const std::vector<Connector *> &World::getConnectors() const
+{
+    return connectors;
 }
 
 void World::setODESolver(SolverType type)

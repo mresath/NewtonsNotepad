@@ -21,6 +21,11 @@ int main()
     Object *selectedObject = nullptr;
     Object *grabbedObject = nullptr;
 
+    Object *object1 = nullptr;
+    Object *object2 = nullptr;
+    Vec2 *anchor1 = nullptr;
+    Vec2 *anchor2 = nullptr;
+
     bool isPanning = false;
     float toolForceMag = 0.0f;
     float accumulatedZoom = 1.0f;
@@ -219,8 +224,23 @@ int main()
 
                             selectedObject = newCircle;
                         }
+                        else if (type == DRAW_ROPE || type == DRAW_SPRING) {
+                            for (size_t i = 0; i < world.getObjects().size(); ++i)
+                            {
+                                Object *obj = world.getObjects()[i];
+                                if (obj->isSelectable && obj->shape->getGlobalBounds().contains(window.mapPixelToCoords(sf::Vector2i(mouseDown->position))))
+                                {
+                                    object1 = obj;
+                                    anchor1 = new Vec2(0, 0);
+                                    break;
+                                }
+                                object1 = nullptr;
+                                anchor1 = new Vec2(metersPos.x, metersPos.y);
+                            }
+                        }
                         else if (type == ERASE)
                         {
+                            bool found = false;
                             for (size_t i = 0; i < world.getObjects().size(); ++i)
                             {
                                 Object *obj = world.getObjects()[i];
@@ -229,7 +249,21 @@ int main()
                                     world.removeObject(i);
                                     if (selectedObject == obj)
                                         selectedObject = nullptr;
+                                    found = true;
                                     break;
+                                }
+                            }
+
+                            if (!found) {
+                                for (size_t i = 0; i < world.getConnectors().size(); ++i)
+                                {
+                                    Connector *conn = world.getConnectors()[i];
+                                    sf::RectangleShape bbox = conn->getBoundingBox();
+                                    if (bbox.getGlobalBounds().contains(window.mapPixelToCoords(sf::Vector2i(mouseDown->position))))
+                                    {
+                                        world.removeConnector(i);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -255,6 +289,81 @@ int main()
                             }
                         }
                         toolForceMag = 0.0f;
+
+                        // Handle rope/spring creation
+                        ToolType type = tools.getCurrentTool()->type;
+                        if (type == DRAW_ROPE || type == DRAW_SPRING) {
+                            if (anchor1 != nullptr) {
+                                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Vector2i(mouseUp->position));
+                                Vec2 pixelsPos = Vec2(mousePos.x, mousePos.y);
+                                Vec2 metersPos = *pixelsToMeters(&pixelsPos);
+
+                                for (size_t i = 0; i < world.getObjects().size(); ++i)
+                                {
+                                    Object *obj = world.getObjects()[i];
+                                    if (obj->isSelectable && obj->shape->getGlobalBounds().contains(window.mapPixelToCoords(sf::Vector2i(mouseUp->position))))
+                                    {
+                                        object2 = obj;
+                                        anchor2 = new Vec2(0, 0);
+                                        break;
+                                    }
+                                    object2 = nullptr;
+                                    anchor2 = new Vec2(metersPos.x, metersPos.y);
+                                }
+
+                                if (object1  != nullptr || object2 != nullptr) {
+                                    if (type == DRAW_ROPE) {
+                                        RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
+
+                                        float totalLength;
+                                        if (object1 && object2) {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            totalLength = (pos2 - pos1).length();
+                                        } else if (object1 && !object2) {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            totalLength = (*anchor2 - pos1).length();
+                                        } else if (!object1 && object2) {
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            totalLength = (*anchor1 - pos2).length();
+                                        } else {
+                                            totalLength = 0.0f;
+                                        }
+                                        totalLength *= ropeSettings->totalLength / 100.0f;
+
+                                        Rope *newRope = new Rope(object1, *anchor1, object2, *anchor2, totalLength, ropeSettings->segmentCount);
+                                        world.addConnector(newRope);
+                                    } else if (type == DRAW_SPRING) {
+                                        SpringSettings *springSettings = static_cast<SpringSettings *>(tools.settings);
+
+                                        float restLength;
+                                        if (object1 && object2) {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            restLength = (pos2 - pos1).length();
+                                        } else if (object1 && !object2) {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            restLength = (*anchor2 - pos1).length();
+                                        } else if (!object1 && object2) {
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            restLength = (*anchor1 - pos2).length();
+                                        } else {
+                                            restLength = 0.0f;
+                                        }
+                                        restLength *= springSettings->restingLength / 100.0f;
+
+                                        Spring *newSpring = new Spring(object1, *anchor1, object2, *anchor2, springSettings->stiffness, springSettings->damping, restLength);
+                                        world.addConnector(newSpring);
+                                    }
+                                }
+                                delete anchor1;
+                                delete anchor2;
+                                object1 = nullptr;
+                                object2 = nullptr;
+                                anchor1 = nullptr;
+                                anchor2 = nullptr;
+                            }
+                        }
                     }
                     else if (mouseUp->button == sf::Mouse::Button::Right)
                     {
@@ -314,8 +423,8 @@ int main()
             ImGui::Separator();
             CircleSettings *circleSettings = static_cast<CircleSettings *>(tools.settings);
             ImGui::Checkbox("Is Static", &circleSettings->isStatic);
-            ImGui::DragFloat("Radius", &circleSettings->radius, LENGTH_STEP, MIN_LENGTH, MAX_LENGTH);
-            ImGui::DragFloat("Density", &circleSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
+            ImGui::DragFloat("Radius (m)", &circleSettings->radius, LENGTH_STEP, MIN_LENGTH, MAX_LENGTH);
+            ImGui::DragFloat("Density (kg/m²)", &circleSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
             ImGui::DragFloat("Drag Coefficient", &circleSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
             ImGui::DragFloat("Lift Coefficient", &circleSettings->liftCoefficient, LIFT_STEP, MIN_LIFT, MAX_LIFT);
             ImGui::DragFloat("Friction Coefficient", &circleSettings->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
@@ -325,6 +434,20 @@ int main()
         {
             ImGui::Text("Left Click and drag to create connection");
             ImGui::Separator();
+            if (type == DRAW_ROPE)
+            {
+                RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
+                ImGui::DragFloat("Segment Count", &ropeSettings->segmentCount, SEGMENTS_STEP, MIN_SEGMENTS, MAX_SEGMENTS);
+                ImGui::DragFloat("Total Length (% of start)", &ropeSettings->totalLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
+
+            }
+            else if (type == DRAW_SPRING)
+            {
+                SpringSettings *springSettings = static_cast<SpringSettings *>(tools.settings);
+                ImGui::DragFloat("Stiffness (N/m)", &springSettings->stiffness, STIFFNESS_STEP, MIN_STIFFNESS, MAX_STIFFNESS);
+                ImGui::DragFloat("Damping (N·s/m)", &springSettings->damping, DAMPING_STEP, MIN_DAMPING, MAX_DAMPING);
+                ImGui::DragFloat("Resting Length (% of start)", &springSettings->restingLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
+            }
         }
         else if (type == ERASE)
         {
@@ -363,6 +486,7 @@ int main()
             ImGui::Text("Translational Energy: %.2f J", selectedObject->body->kineticEnergy);
             ImGui::Text("Rotational Energy: %.2f J", selectedObject->body->rotationalKineticEnergy);
             ImGui::Text("Gravitational Potential: %.2f J", selectedObject->body->gravitationalPotential);
+            ImGui::Text("Spring Potential: %.2f J", selectedObject->body->springPotential);
             ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->totalEnergy);
             ImGui::Separator();
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
@@ -375,15 +499,15 @@ int main()
         if (settingsOpen)
         {
             ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
-            ImGui::DragFloat("Gravity", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
-            ImGui::DragFloat("Air Density", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
+            ImGui::DragFloat("Gravity (m/s²)", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
+            ImGui::DragFloat("Air Density (kg/m³)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
             static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "AM"};
             static int currentSolver = static_cast<int>(world.getODESolver());
             if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
             {
                 world.setODESolver(static_cast<SolverType>(currentSolver));
             }
-            ImGui::DragFloat("Calculation Frequency", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
+            ImGui::DragFloat("Calculation Frequency (Hz)", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
             ImGui::End();
         }
 
@@ -403,7 +527,31 @@ int main()
 
         // Clear screen and draw world & ui
         window.clear(sf::Color::Black);
-        world.draw(&window);
+        world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING);
+        if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr)) {
+            Vec2 pos1 = object1 ? (object1->body->position + *anchor1) : *anchor1;
+            Vec2 pos2 = *posPointer;
+
+            Connector *tempConnector = nullptr;
+            if (type == DRAW_ROPE) {
+                RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
+
+                float restLength = (pos2 - pos1).length();
+                restLength *= ropeSettings->totalLength / 100.0f;
+
+                tempConnector = new Rope(nullptr, pos1, nullptr, pos2, ropeSettings->totalLength, ropeSettings->segmentCount);
+            } else if (type == DRAW_SPRING) {
+                SpringSettings *springSettings = static_cast<SpringSettings *>(tools.settings);
+
+                float restLength = (pos2 - pos1).length();
+                restLength *= springSettings->restingLength / 100.0f;
+
+                tempConnector = new Spring(nullptr, pos1, nullptr, pos2, springSettings->stiffness, springSettings->damping, restLength);
+            }
+
+            tempConnector->draw(&window);
+            delete tempConnector;
+        }
         ImGui::SFML::Render(window);
         window.display();
     }

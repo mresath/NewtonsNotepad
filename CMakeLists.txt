@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
     src/core/World.cpp
     src/core/Tools.cpp
     src/objects/Object.cpp
+    src/objects/Connector.cpp
     src/engine/ODE.cpp
 )
 
