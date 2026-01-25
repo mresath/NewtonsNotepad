@@ -43,7 +43,8 @@ public:
     float restingLength;
 
     Spring(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float stiff, float damp, float restLen);
-    ~Spring() {
+    ~Spring()
+    {
         Connector::~Connector();
     };
 
@@ -57,9 +58,11 @@ struct Rope : Connector
 public:
     float totalLength;
     float segmentCount;
+    float segmentMass;
 
-    Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments);
-    ~Rope() {
+    Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments, float segMass);
+    ~Rope()
+    {
         Connector::~Connector();
     };
 
