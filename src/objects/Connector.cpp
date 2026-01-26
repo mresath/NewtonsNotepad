@@ -91,7 +91,8 @@ ForceSource Spring::getForceSource(bool isObjectA) const
     const Vec2 *ancAptr = &anchorA;
     const Vec2 *ancBptr = &anchorB;
 
-    return ForceSource(getIDString(), [this, ancAptr, ancBptr, isObjectA](const Body &state) -> Force {
+    return ForceSource(getIDString(), [this, ancAptr, ancBptr, isObjectA](const Body &state) -> Force
+                       {
         Vec2 anchor = isObjectA ? *ancAptr : *ancBptr;
         Vec2 origin = state.position + anchor;
 
@@ -109,8 +110,7 @@ ForceSource Spring::getForceSource(bool isObjectA) const
         Vec2 relativeVelocity = otherObject != nullptr ? state.velocity - otherObject->body->velocity : state.velocity;
         float velAlongDir = dot(relativeVelocity, unitDir);
         Vec2 springForce = unitDir * (-stiffness * lengthDiff - damping * velAlongDir);
-        return Force(anchor, springForce);
-    });
+        return Force(anchor, springForce); });
 }
 
 float Spring::getCurrentLength() const
@@ -161,30 +161,31 @@ void Spring::draw(sf::RenderWindow *window) const
     // Calculate spring direction and length
     Vec2 direction = pixelsB - pixelsA;
     float length = direction.length();
-    
-    if (length < 1.0f) return; // Don't draw if too short
-    
+
+    if (length < 1.0f)
+        return; // Don't draw if too short
+
     Vec2 unitDir = direction / length;
     Vec2 perpendicular(-unitDir.y, unitDir.x);
 
     // Spring visualization parameters
-    const int coilCount = 12;  // Number of coils
-    const float amplitude = 5.0f; // Width of the spring coils
+    const int coilCount = 12;        // Number of coils
+    const float amplitude = 5.0f;    // Width of the spring coils
     const float endCapLength = 8.0f; // Length of straight segments at ends
 
     // Create vertices for the spring shape
     std::vector<sf::Vertex> vertices;
-    
+
     // Start cap (straight line)
     sf::Vertex vStart1{{pixelsA.x, pixelsA.y}, CONNECTOR_COLOR};
     vertices.push_back(vStart1);
     Vec2 startCoil = pixelsA + unitDir * endCapLength;
     sf::Vertex vStart2{{startCoil.x, startCoil.y}, CONNECTOR_COLOR};
     vertices.push_back(vStart2);
-    
+
     // Calculate the coil section length
     float coilSectionLength = length - 2.0f * endCapLength;
-    
+
     if (coilSectionLength > 0.0f)
     {
         // Draw the coils
@@ -192,27 +193,27 @@ void Spring::draw(sf::RenderWindow *window) const
         {
             float t = static_cast<float>(i) / static_cast<float>(coilCount);
             float offset = (i % 2 == 0) ? amplitude : -amplitude;
-            
+
             Vec2 point = startCoil + unitDir * (t * coilSectionLength) + perpendicular * offset;
             sf::Vertex v{{point.x, point.y}, CONNECTOR_COLOR};
             vertices.push_back(v);
         }
     }
-    
+
     // End cap (straight line)
     Vec2 endCoil = pixelsB - unitDir * endCapLength;
     sf::Vertex vEnd1{{endCoil.x, endCoil.y}, CONNECTOR_COLOR};
     sf::Vertex vEnd2{{pixelsB.x, pixelsB.y}, CONNECTOR_COLOR};
     vertices.push_back(vEnd1);
     vertices.push_back(vEnd2);
-    
+
     // Draw the spring
     window->draw(vertices.data(), vertices.size(), sf::PrimitiveType::LineStrip);
 }
 
 /* ROPE */
-Rope::Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments)
-    : Connector(objA, ancA, objB, ancB), totalLength(length), segmentCount(segments) {}
+Rope::Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments, float segMass)
+    : Connector(objA, ancA, objB, ancB), totalLength(length), segmentCount(segments), segmentMass(segMass) {}
 
 ForceSource Rope::getForceSource(bool isObjectA) const
 {

@@ -224,7 +224,8 @@ int main()
 
                             selectedObject = newCircle;
                         }
-                        else if (type == DRAW_ROPE || type == DRAW_SPRING) {
+                        else if (type == DRAW_ROPE || type == DRAW_SPRING)
+                        {
                             for (size_t i = 0; i < world.getObjects().size(); ++i)
                             {
                                 Object *obj = world.getObjects()[i];
@@ -254,7 +255,8 @@ int main()
                                 }
                             }
 
-                            if (!found) {
+                            if (!found)
+                            {
                                 for (size_t i = 0; i < world.getConnectors().size(); ++i)
                                 {
                                     Connector *conn = world.getConnectors()[i];
@@ -292,8 +294,10 @@ int main()
 
                         // Handle rope/spring creation
                         ToolType type = tools.getCurrentTool()->type;
-                        if (type == DRAW_ROPE || type == DRAW_SPRING) {
-                            if (anchor1 != nullptr) {
+                        if (type == DRAW_ROPE || type == DRAW_SPRING)
+                        {
+                            if (anchor1 != nullptr)
+                            {
                                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Vector2i(mouseUp->position));
                                 Vec2 pixelsPos = Vec2(mousePos.x, mousePos.y);
                                 Vec2 metersPos = *pixelsToMeters(&pixelsPos);
@@ -311,43 +315,61 @@ int main()
                                     anchor2 = new Vec2(metersPos.x, metersPos.y);
                                 }
 
-                                if (object1  != nullptr || object2 != nullptr) {
-                                    if (type == DRAW_ROPE) {
+                                if (object1 != nullptr || object2 != nullptr)
+                                {
+                                    if (type == DRAW_ROPE)
+                                    {
                                         RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
 
                                         float totalLength;
-                                        if (object1 && object2) {
+                                        if (object1 && object2)
+                                        {
                                             Vec2 pos1 = object1->body->position + *anchor1;
                                             Vec2 pos2 = object2->body->position + *anchor2;
                                             totalLength = (pos2 - pos1).length();
-                                        } else if (object1 && !object2) {
+                                        }
+                                        else if (object1 && !object2)
+                                        {
                                             Vec2 pos1 = object1->body->position + *anchor1;
                                             totalLength = (*anchor2 - pos1).length();
-                                        } else if (!object1 && object2) {
+                                        }
+                                        else if (!object1 && object2)
+                                        {
                                             Vec2 pos2 = object2->body->position + *anchor2;
                                             totalLength = (*anchor1 - pos2).length();
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             totalLength = 0.0f;
                                         }
                                         totalLength *= ropeSettings->totalLength / 100.0f;
 
-                                        Rope *newRope = new Rope(object1, *anchor1, object2, *anchor2, totalLength, ropeSettings->segmentCount);
+                                        Rope *newRope = new Rope(object1, *anchor1, object2, *anchor2, totalLength, ropeSettings->segmentCount, ropeSettings->segmentMass);
                                         world.addConnector(newRope);
-                                    } else if (type == DRAW_SPRING) {
+                                    }
+                                    else if (type == DRAW_SPRING)
+                                    {
                                         SpringSettings *springSettings = static_cast<SpringSettings *>(tools.settings);
 
                                         float restLength;
-                                        if (object1 && object2) {
+                                        if (object1 && object2)
+                                        {
                                             Vec2 pos1 = object1->body->position + *anchor1;
                                             Vec2 pos2 = object2->body->position + *anchor2;
                                             restLength = (pos2 - pos1).length();
-                                        } else if (object1 && !object2) {
+                                        }
+                                        else if (object1 && !object2)
+                                        {
                                             Vec2 pos1 = object1->body->position + *anchor1;
                                             restLength = (*anchor2 - pos1).length();
-                                        } else if (!object1 && object2) {
+                                        }
+                                        else if (!object1 && object2)
+                                        {
                                             Vec2 pos2 = object2->body->position + *anchor2;
                                             restLength = (*anchor1 - pos2).length();
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             restLength = 0.0f;
                                         }
                                         restLength *= springSettings->restingLength / 100.0f;
@@ -438,8 +460,8 @@ int main()
             {
                 RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
                 ImGui::DragFloat("Segment Count", &ropeSettings->segmentCount, SEGMENTS_STEP, MIN_SEGMENTS, MAX_SEGMENTS);
+                ImGui::DragFloat("Segment Mass (kg)", &ropeSettings->segmentMass, SEGMENT_MASS_STEP, MIN_SEGMENT_MASS, MAX_SEGMENT_MASS);
                 ImGui::DragFloat("Total Length (% of start)", &ropeSettings->totalLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
-
             }
             else if (type == DRAW_SPRING)
             {
@@ -500,7 +522,7 @@ int main()
         {
             ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
             ImGui::DragFloat("Gravity (m/s²)", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
-            ImGui::DragFloat("Air Density (kg/m³)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
+            ImGui::DragFloat("Air Density (kg/m²)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
             static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "AM"};
             static int currentSolver = static_cast<int>(world.getODESolver());
             if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
@@ -528,19 +550,23 @@ int main()
         // Clear screen and draw world & ui
         window.clear(sf::Color::Black);
         world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING);
-        if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr)) {
+        if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr))
+        {
             Vec2 pos1 = object1 ? (object1->body->position + *anchor1) : *anchor1;
             Vec2 pos2 = *posPointer;
 
             Connector *tempConnector = nullptr;
-            if (type == DRAW_ROPE) {
+            if (type == DRAW_ROPE)
+            {
                 RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
 
                 float restLength = (pos2 - pos1).length();
                 restLength *= ropeSettings->totalLength / 100.0f;
 
-                tempConnector = new Rope(nullptr, pos1, nullptr, pos2, ropeSettings->totalLength, ropeSettings->segmentCount);
-            } else if (type == DRAW_SPRING) {
+                tempConnector = new Rope(nullptr, pos1, nullptr, pos2, restLength, ropeSettings->segmentCount, 0.0f);
+            }
+            else if (type == DRAW_SPRING)
+            {
                 SpringSettings *springSettings = static_cast<SpringSettings *>(tools.settings);
 
                 float restLength = (pos2 - pos1).length();

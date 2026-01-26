@@ -4,17 +4,22 @@
 
 #include "objects/Tool.hpp"
 
-struct ToolSettings {};
+struct ToolSettings
+{
+};
 
-struct PushSettings : ToolSettings {
+struct PushSettings : ToolSettings
+{
     float forceMagnitude = DEFAULT_FORCE;
 };
 
-struct PullSettings : ToolSettings {
+struct PullSettings : ToolSettings
+{
     float forceMagnitude = DEFAULT_FORCE;
 };
 
-struct CircleSettings : ToolSettings {
+struct CircleSettings : ToolSettings
+{
     bool isStatic = false;
     float radius = DEFAULT_LENGTH;
     float density = DEFAULT_DENSITY;
@@ -24,12 +29,15 @@ struct CircleSettings : ToolSettings {
     float restitution = DEFAULT_RESTITUTION;
 };
 
-struct RopeSettings : ToolSettings {
+struct RopeSettings : ToolSettings
+{
     float segmentCount = DEFAULT_SEGMENTS;
+    float segmentMass = DEFAULT_SEGMENT_MASS;
     float totalLength = MAX_PERCENTAGE;
 };
 
-struct SpringSettings : ToolSettings {
+struct SpringSettings : ToolSettings
+{
     float stiffness = DEFAULT_STIFFNESS;
     float damping = DEFAULT_DAMPING;
     float restingLength = MAX_PERCENTAGE;
@@ -43,7 +51,7 @@ private:
 
 public:
     ToolSettings *settings;
-    
+
     Tools();
     ~Tools();
 

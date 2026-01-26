@@ -28,10 +28,10 @@
 
 #define DEFAULT_CALC_FREQ 20 // Hz
 #define MAX_CALC_FREQ 1000   // Hz
-#define MIN_CALC_FREQ 10      // Hz
-#define CALC_FREQ_STEP 10     // Hz
+#define MIN_CALC_FREQ 10     // Hz
+#define CALC_FREQ_STEP 10    // Hz
 
-#define MAX_DT 0.05f         // seconds
+#define MAX_DT 0.05f // seconds
 
 // PHYSICS CONFIGURATION
 #define MIN_GRAVITY -50.0f
@@ -106,3 +106,8 @@
 #define MAX_SEGMENTS 10
 #define SEGMENTS_STEP 1
 #define DEFAULT_SEGMENTS 4
+
+#define MIN_SEGMENT_MASS 0.0f
+#define MAX_SEGMENT_MASS 10.f
+#define SEGMENT_MASS_STEP 0.1f
+#define DEFAULT_SEGMENT_MASS 0.1f
