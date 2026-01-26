@@ -65,6 +65,7 @@ public:
 
     void calculateEnergies();
     void zeroEnergies();
+    void totalEnergy();
     void update(float dt);
 
     void draw(sf::RenderWindow *window);

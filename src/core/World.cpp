@@ -168,7 +168,14 @@ void World::update(float dt)
     for (Object *object : objects)
     {
         object->update(dt);
-
+    }
+    for (Connector *connector : connectors)
+    {
+        connector->applyEnergy();
+    }
+    for (Object *object : objects)
+    {
+        object->totalEnergy();
         energySum += object->body->totalEnergy;
     }
     totalEnergy = energySum;

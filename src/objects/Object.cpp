@@ -87,6 +87,7 @@ void Object::setConstant()
 {
     isSelectable = false;
     body->restitution = 1.0f;
+    body->frictionCoefficient = 0.0f;
     setStatic(true);
 }
 
@@ -183,8 +184,6 @@ void Object::calculateEnergies()
     body->kineticEnergy = 0.5f * body->mass * body->velocity.lengthSquared();
     body->rotationalKineticEnergy = 0.5f * body->momentOfInertia * body->angularVelocity * body->angularVelocity;
     body->gravitationalPotential = dot(standardizePosition(body->position), *gravityPtr) * body->mass;
-
-    body->totalEnergy = body->kineticEnergy + body->rotationalKineticEnergy + body->gravitationalPotential + body->springPotential;
 }
 
 void Object::zeroEnergies()
@@ -194,6 +193,11 @@ void Object::zeroEnergies()
     body->gravitationalPotential = 0.0f;
     body->springPotential = 0.0f;
     body->totalEnergy = 0.0f;
+}
+
+void Object::totalEnergy()
+{
+    body->totalEnergy = body->kineticEnergy + body->rotationalKineticEnergy + body->gravitationalPotential + body->springPotential;
 }
 
 void Object::update(float dt)
@@ -215,6 +219,7 @@ void Object::update(float dt)
         delete maxPixels;
     }
 
+    zeroEnergies();
     calculateEnergies();
 
     Vec2 *pos = metersToPixels(&body->position);

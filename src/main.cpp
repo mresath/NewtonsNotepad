@@ -523,7 +523,7 @@ int main()
         }
 
         // Update world and bodies
-        world.update(dt);
+        if (!settingsOpen) world.update(dt);
 
         // Clear screen and draw world & ui
         window.clear(sf::Color::Black);

@@ -23,6 +23,9 @@ public:
 
     virtual void draw(sf::RenderWindow *window) const;
 
+    virtual float getEnergy() const { return 0.0f; };
+    virtual void applyEnergy() const { };
+
     sf::RectangleShape getBoundingBox() const;
 
     bool isConnectedTo(const Object *obj) const
@@ -50,6 +53,11 @@ public:
     ForceSource getForceSource(bool isObjectA) const override;
 
     void draw(sf::RenderWindow *window) const override;
+
+    float getCurrentLength() const;
+    float getExtension() const;
+    float getEnergy() const override;
+    void applyEnergy() const override;
 };
 
 struct Rope : Connector
@@ -66,4 +74,7 @@ public:
     ForceSource getForceSource(bool isObjectA) const override;
 
     void draw(sf::RenderWindow *window) const override;
+
+    float getEnergy() const override { return 0.0f; };
+    void applyEnergy() const override { };
 };

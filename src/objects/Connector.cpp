@@ -113,6 +113,43 @@ ForceSource Spring::getForceSource(bool isObjectA) const
     });
 }
 
+float Spring::getCurrentLength() const
+{
+    Vec2 posA = objectA != nullptr ? objectA->body->position + anchorA : anchorA;
+    Vec2 posB = objectB != nullptr ? objectB->body->position + anchorB : anchorB;
+
+    return (posB - posA).length();
+}
+
+float Spring::getExtension() const
+{
+    return getCurrentLength() - restingLength;
+}
+
+float Spring::getEnergy() const
+{
+    float extension = getExtension();
+    return 0.5f * stiffness * extension * extension;
+}
+
+void Spring::applyEnergy() const
+{
+    float u = getEnergy();
+    if (objectA != nullptr && objectB != nullptr)
+    {
+        objectA->body->springPotential += u / 2.0f;
+        objectB->body->springPotential += u / 2.0f;
+    }
+    else if (objectA != nullptr)
+    {
+        objectA->body->springPotential += u;
+    }
+    else if (objectB != nullptr)
+    {
+        objectB->body->springPotential += u;
+    }
+}
+
 void Spring::draw(sf::RenderWindow *window) const
 {
     Vec2 posA = objectA != nullptr ? objectA->body->position + anchorA : anchorA;
