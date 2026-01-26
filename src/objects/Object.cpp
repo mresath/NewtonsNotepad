@@ -27,6 +27,9 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
 
     shape->setFillColor(sf::Color::White);
 
+    Vec2 posPixels = *metersToPixels(&position);
+    shape->setPosition(sf::Vector2f(posPixels.x, posPixels.y));
+
     float mass = density * volume;
     float inertia = type == CIRCLE ? 0.5f * mass * dimensions.x * dimensions.x
                                    : (1.0f / 12.0f) * mass * (dimensions.x * dimensions.x + dimensions.y * dimensions.y);
