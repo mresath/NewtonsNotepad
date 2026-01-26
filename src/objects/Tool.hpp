@@ -114,7 +114,7 @@ struct Tool
         case DRAW_CIRCLE:
             return "Draw Circle";
         case DRAW_ROPE:
-            return "Draw Rope";
+            return "Draw Strut";
         case DRAW_SPRING:
             return "Draw Spring";
         case ERASE:

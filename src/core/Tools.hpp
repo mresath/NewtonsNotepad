@@ -31,8 +31,6 @@ struct CircleSettings : ToolSettings
 
 struct RopeSettings : ToolSettings
 {
-    float segmentCount = DEFAULT_SEGMENTS;
-    float segmentMass = DEFAULT_SEGMENT_MASS;
     float totalLength = MAX_PERCENTAGE;
 };
 

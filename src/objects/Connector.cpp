@@ -212,12 +212,35 @@ void Spring::draw(sf::RenderWindow *window) const
 }
 
 /* ROPE */
-Rope::Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments, float segMass)
-    : Connector(objA, ancA, objB, ancB), totalLength(length), segmentCount(segments), segmentMass(segMass) {}
+Rope::Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length)
+    : Connector(objA, ancA, objB, ancB), totalLength(length) {}
 
 ForceSource Rope::getForceSource(bool isObjectA) const
 {
-    return ForceSource(getIDString());
+    const Vec2 *ancAptr = &anchorA;
+    const Vec2 *ancBptr = &anchorB;
+
+    float stiffness = 1000.0f; // High stiffness for rope tension
+
+    return ForceSource(getIDString(), [this, ancAptr, ancBptr, isObjectA, stiffness](const Body &state) -> Force
+                       {
+
+        Vec2 anchor = isObjectA ? *ancAptr : *ancBptr;
+        Vec2 origin = state.position + anchor;
+
+        Object *otherObject = isObjectA ? objectB : objectA;
+        Vec2 otherAnchor = isObjectA ? anchorB : anchorA;
+        Vec2 otherPosition = otherObject != nullptr ? otherObject->body->position + otherAnchor : otherAnchor;
+
+        Vec2 dir = origin - otherPosition;
+        float currentLength = dir.length();
+        if (currentLength == 0.0f)
+            return Force(anchor, Vec2(0.0f, 0.0f));
+        
+        Vec2 unitDir = dir / currentLength;
+        float lengthDiff = currentLength - totalLength;
+        Vec2 springForce = unitDir * (-stiffness * lengthDiff);
+        return Force(anchor, springForce); });
 }
 
 void Rope::draw(sf::RenderWindow *window) const

@@ -65,10 +65,8 @@ struct Rope : Connector
 {
 public:
     float totalLength;
-    float segmentCount;
-    float segmentMass;
 
-    Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length, float segments, float segMass);
+    Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length);
     ~Rope()
     {
         Connector::~Connector();

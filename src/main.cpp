@@ -344,7 +344,7 @@ int main()
                                         }
                                         totalLength *= ropeSettings->totalLength / 100.0f;
 
-                                        Rope *newRope = new Rope(object1, *anchor1, object2, *anchor2, totalLength, ropeSettings->segmentCount, ropeSettings->segmentMass);
+                                        Rope *newRope = new Rope(object1, *anchor1, object2, *anchor2, totalLength);
                                         world.addConnector(newRope);
                                     }
                                     else if (type == DRAW_SPRING)
@@ -459,8 +459,6 @@ int main()
             if (type == DRAW_ROPE)
             {
                 RopeSettings *ropeSettings = static_cast<RopeSettings *>(tools.settings);
-                ImGui::DragFloat("Segment Count", &ropeSettings->segmentCount, SEGMENTS_STEP, MIN_SEGMENTS, MAX_SEGMENTS);
-                ImGui::DragFloat("Segment Mass (kg)", &ropeSettings->segmentMass, SEGMENT_MASS_STEP, MIN_SEGMENT_MASS, MAX_SEGMENT_MASS);
                 ImGui::DragFloat("Total Length (% of start)", &ropeSettings->totalLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
             }
             else if (type == DRAW_SPRING)
@@ -563,7 +561,7 @@ int main()
                 float restLength = (pos2 - pos1).length();
                 restLength *= ropeSettings->totalLength / 100.0f;
 
-                tempConnector = new Rope(nullptr, pos1, nullptr, pos2, restLength, ropeSettings->segmentCount, 0.0f);
+                tempConnector = new Rope(nullptr, pos1, nullptr, pos2, restLength);
             }
             else if (type == DRAW_SPRING)
             {
