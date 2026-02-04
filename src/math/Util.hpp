@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "Config.hpp"
 
 #include "math/Vec2.hpp"
 

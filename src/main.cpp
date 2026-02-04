@@ -1,4 +1,4 @@
-#include "Config.h"
+#include "Config.hpp"
 
 #include <iostream>
 #include <fmt/format.h>
@@ -7,7 +7,7 @@
 #include "core/World.hpp"
 #include "core/Tools.hpp"
 #include "core/UI.hpp"
-#include "logging/Logger.h"
+#include "logging/Logger.hpp"
 
 // Entry point
 int main()
