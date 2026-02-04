@@ -5,3 +5,7 @@ build/
 
 # VS Code local settings
 .vscode/
+
+# MAC
+.DS_Store
+vendor/.DS_Store
