@@ -7,6 +7,7 @@
 #include "core/World.hpp"
 #include "core/Tools.hpp"
 #include "core/UI.hpp"
+#include "logging/Logger.h"
 
 // Entry point
 int main()
@@ -50,6 +51,9 @@ int main()
     // Initialize world and objects
     World world;
     Tools tools;
+
+    // Initialize logger
+    Logger logger(&world);
 
     // Create ground and walls
     Object *ground = new Object(*pixelsToMeters(new Vec2(0, DEF_HEIGHT - HALF_WALL_THICKNESS)), *pixelsToMeters(new Vec2(WORLD_WIDTH, WALL_THICKNESS)), 1.0f, RECTANGLE);
@@ -528,6 +532,13 @@ int main()
                 world.setODESolver(static_cast<SolverType>(currentSolver));
             }
             ImGui::DragFloat("Calculation Frequency (Hz)", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
+            if (ImGui::Button("Save Logs")) {
+                logger.saveAll();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Open Logs Folder")) {
+                logger.openLogFolder();
+            }
             ImGui::End();
         }
 
@@ -543,7 +554,10 @@ int main()
         }
 
         // Update world and bodies
-        if (!settingsOpen) world.update(dt);
+        if (!settingsOpen) {
+            world.update(dt);
+            logger.logWorld();
+        }
 
         // Clear screen and draw world & ui
         window.clear(sf::Color::Black);

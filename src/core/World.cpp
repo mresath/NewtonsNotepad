@@ -82,6 +82,9 @@ void World::clearConnectors()
 
 void World::update(float dt)
 {
+    // Update simulation time
+    time += dt;
+
     // Apply global forces
     for (Object *object : objects)
     {
@@ -221,4 +224,9 @@ void World::setODESolver(SolverType type)
 SolverType World::getODESolver() const
 {
     return odeSolver;
+}
+
+double World::getTime() const
+{
+    return time;
 }

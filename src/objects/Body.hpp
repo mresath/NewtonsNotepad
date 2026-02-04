@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/Vec2.hpp"
+#include <nlohmann/json.hpp>
 
 struct Body
 {
@@ -43,5 +44,49 @@ struct Body
     {
         this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;
         this->invMomentOfInertia = (momentOfInertia == 0.0f) ? 0.0f : 1.0f / momentOfInertia;
+    }
+
+    nlohmann::json to_json() const
+    {
+        nlohmann::json j;
+
+        nlohmann::json properties;
+        properties["mass"] = mass;
+        properties["momentOfInertia"] = momentOfInertia;
+
+        nlohmann::json coefficients;
+        coefficients["drag"] = dragCoefficient;
+        coefficients["lift"] = liftCoefficient;
+        coefficients["friction"] = frictionCoefficient;
+        coefficients["restitution"] = restitution;
+
+        nlohmann::json state;
+
+        nlohmann::json linear;
+        linear["position"] = { position.x, position.y };
+        linear["velocity"] = { velocity.x, velocity.y };
+        linear["momentum"] = { momentum.x, momentum.y };
+
+        nlohmann::json rotational;
+        rotational["rotation"] = rotation;
+        rotational["angularVelocity"] = angularVelocity;
+        rotational["angularMomentum"] = angularMomentum;
+
+        nlohmann::json energies;
+        energies["kinetic"] = kineticEnergy;
+        energies["rotationalKinetic"] = rotationalKineticEnergy;
+        energies["gravitationalPotential"] = gravitationalPotential;
+        energies["springPotential"] = springPotential;
+        energies["totalEnergy"] = totalEnergy;
+
+        state["linear"] = linear;
+        state["rotational"] = rotational;
+        state["energies"] = energies;
+
+        j["properties"] = properties;
+        j["coefficients"] = coefficients;
+        j["state"] = state;
+
+        return j;
     }
 };

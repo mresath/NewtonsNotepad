@@ -18,6 +18,10 @@ add_subdirectory(vendor/imgui-sfml)
 
 add_subdirectory(vendor/fmt)
 
+add_subdirectory(vendor/matplotplusplus)
+
+add_subdirectory(vendor/json)
+
 add_executable(${PROJECT_NAME} 
     src/main.cpp
     src/core/World.cpp
@@ -25,11 +29,12 @@ add_executable(${PROJECT_NAME}
     src/objects/Object.cpp
     src/objects/Connector.cpp
     src/engine/ODE.cpp
+    src/logging/Logger.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Window SFML::System ImGui-SFML::ImGui-SFML fmt::fmt)
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Window SFML::System ImGui-SFML::ImGui-SFML fmt::fmt matplot nlohmann_json::nlohmann_json)
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
