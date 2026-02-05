@@ -13,7 +13,7 @@ enum SolverType : unsigned short
     VERLET,
     DOPRI5,
     AB,
-    AM
+    ABM
 };
 
 inline std::string solverTypeToString(SolverType type)
@@ -31,9 +31,9 @@ inline std::string solverTypeToString(SolverType type)
     case VERLET:
         return "Verlet";
     case AB:
-        return "AB";
-    case AM:
-        return "AM";
+        return "AB4";
+    case ABM:
+        return "ABM4";
     default:
         return "Unknown";
     }
@@ -77,9 +77,6 @@ public:
 
 class VerletSolver : public ODESolver
 {
-private:
-    Vec2 previousPosition;
-    bool isFirstStep = true;
 public:
     VerletSolver(Object *initialState) : ODESolver(initialState) {}
     void step(float dt) override;
@@ -100,20 +97,28 @@ private:
     std::vector<Body> previousStates;
 public:
     ABSolver(Object *initialState) : ODESolver(initialState) {
-        previousStates.reserve(5);
+        previousStates.reserve(4);
     }
     void step(float dt) override;
     Body simulate(float dt) override;
+
+    void setPreviousStates(const std::vector<Body> &states) {
+        previousStates = states;
+    }
 };
 
-class AMSolver : public ODESolver
+class ABMSolver : public ODESolver
 {
 private:
     std::vector<Body> previousStates;
 public:
-    AMSolver(Object *initialState) : ODESolver(initialState) {
-        previousStates.reserve(5);
+    ABMSolver(Object *initialState) : ODESolver(initialState) {
+        previousStates.reserve(4);
     }
     void step(float dt) override;
     Body simulate(float dt) override;
+
+    void setPreviousStates(const std::vector<Body> &states) {
+        previousStates = states;
+    }
 };

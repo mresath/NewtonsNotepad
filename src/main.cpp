@@ -529,10 +529,10 @@ int main()
         if (settingsOpen)
         {
             // Position Simulation Settings window at center
-            ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
+            ImGui::Begin("Simulation Settings", &settingsOpen, propFlags | ImGuiWindowFlags_NoMove);
             ImGui::DragFloat("Gravity (m/s²)", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
             ImGui::DragFloat("Air Density (kg/m²)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
-            static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "AM"};
+            static const char *solverItems[] = {"Euler", "RK2", "RK4", "Verlet", "DOPRI5", "AB", "ABM"};
             static int currentSolver = static_cast<int>(world.getODESolver());
             if (ImGui::Combo("ODE Solver", &currentSolver, solverItems, IM_ARRAYSIZE(solverItems)))
             {
@@ -547,7 +547,7 @@ int main()
                 logger.openLogFolder();
             }
             ImVec2 settingWindowSize = ImGui::GetWindowSize();
-            ImGui::SetWindowPos(ImVec2((window.getSize().x - settingWindowSize.x) * 0.5f, (window.getSize().y - settingWindowSize.y) * 0.5f), ImGuiCond_Once);
+            ImGui::SetWindowPos(ImVec2((window.getSize().x - settingWindowSize.x) * 0.5f, (window.getSize().y - settingWindowSize.y) * 0.5f), ImGuiCond_Always);
             ImGui::End();
         }
 

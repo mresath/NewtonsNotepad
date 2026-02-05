@@ -18,7 +18,7 @@ struct Body
     float netTorque = 0.0f;
 
     // Energies and Momenta
-    Vec2 momentum = Vec2(0.0f, 0.0f);
+    Vec2 momentum;
     float angularMomentum = 0.0f;
 
     float kineticEnergy = 0.0f;
@@ -40,6 +40,13 @@ struct Body
     float restitution = 0.7f;
 
     // Constructors
+    Body() {
+        mass = 1.0f;
+        invMass = 1.0f;
+        momentOfInertia = 1.0f;
+        invMomentOfInertia = 1.0f;
+    }
+
     Body(const Vec2 &position, float mass, float momentOfInertia) : position(position), mass(mass), momentOfInertia(momentOfInertia)
     {
         this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;

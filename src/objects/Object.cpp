@@ -48,16 +48,16 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
         solver = new RK4Solver(this);
         break;
     case VERLET:
-        // solver = new VerletSolver(this);
+        solver = new VerletSolver(this);
         break;
     case DOPRI5:
-        // solver = new DOPRI5Solver(this);
+        solver = new DOPRI5Solver(this);
         break;
     case AB:
-        // solver = new ABSolver(this);
+        solver = new ABSolver(this);
         break;
-    case AM:
-        // solver = new AMSolver(this);
+    case ABM:
+        solver = new ABMSolver(this);
         break;
     }
 }
@@ -156,19 +156,18 @@ void Object::switchSolver(SolverType type)
         break;
     case RK4:
         newSolver = new RK4Solver(this);
-        ;
         break;
     case VERLET:
-        // newSolver = new VerletSolver(this);
+        newSolver = new VerletSolver(this);
         break;
     case DOPRI5:
-        // newSolver = new DOPRI5Solver(this);
+        newSolver = new DOPRI5Solver(this);
         break;
     case AB:
-        // newSolver = new ABSolver(this);
+        newSolver = new ABSolver(this);
         break;
-    case AM:
-        // newSolver = new AMSolver(this);
+    case ABM:
+        newSolver = new ABMSolver(this);
         break;
     }
     if (newSolver)
