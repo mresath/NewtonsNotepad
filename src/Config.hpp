@@ -26,9 +26,9 @@
 // ENGINE CONFIGURATION
 #define DEFAULT_SOLVER RK4
 
-#define DEFAULT_CALC_FREQ 20 // Hz
-#define MAX_CALC_FREQ 1000   // Hz
-#define MIN_CALC_FREQ 10     // Hz
+#define DEFAULT_CALC_FREQ 60 // Hz
+#define MAX_CALC_FREQ 240   // Hz
+#define MIN_CALC_FREQ 30     // Hz
 #define CALC_FREQ_STEP 10    // Hz
 
 #define MAX_DT 0.05f // seconds

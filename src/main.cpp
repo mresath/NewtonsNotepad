@@ -52,6 +52,9 @@ int main()
     World world;
     Tools tools;
 
+    // Fixed timestep accumulator for physics calculations
+    float accumulator = 0.0f;
+
     // Initialize logger
     Logger logger(&world);
 
@@ -405,12 +408,19 @@ int main()
 
         // Calculate delta time independent of frame rate
         sf::Time dtTime = clock.restart();
-        float dt = dtTime.asSeconds();
-        if (dt > MAX_DT)
-            dt = MAX_DT;
+        float frameTime = dtTime.asSeconds();
+        if (frameTime > MAX_DT)
+            frameTime = MAX_DT;
 
         // Update UI and tools
         ImGui::SFML::Update(window, dtTime);
+
+        // FPS and Calculation Frequency
+        float fps = frameTime > 0.0f ? 1.0f / frameTime : 0.0f;
+        ImGui::SetNextWindowPos(ImVec2(window.getSize().x * 0.5f, 10), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+        ImGui::Begin("Stats", nullptr, toolFlags);
+        ImGui::Text("FPS: %.1f  |  Calc Freq: %.0f Hz", fps, world.calculationFrequency);
+        ImGui::End();
 
         // Tools window
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
@@ -562,9 +572,20 @@ int main()
             grabbedObject->body->velocity = Vec2(0.0f, 0.0f);
         }
 
-        // Update world and bodies
+        // Update world and bodies with fixed timestep
         if (!settingsOpen) {
-            world.update(dt);
+            // Calculate fixed timestep from calculation frequency
+            float fixedDt = 1.0f / world.calculationFrequency;
+            
+            // Add frame time to accumulator
+            accumulator += frameTime;
+            
+            // Update physics in fixed timesteps
+            while (accumulator >= fixedDt) {
+                world.update(fixedDt);
+                accumulator -= fixedDt;
+            }
+            
             logger.logWorld();
         }
 
