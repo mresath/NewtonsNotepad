@@ -90,3 +90,69 @@ struct Body
         return j;
     }
 };
+
+enum BodyKeys {
+    MASS,
+    MOMENT_OF_INERTIA,
+    DRAG_COEFFICIENT,
+    LIFT_COEFFICIENT,
+    FRICTION_COEFFICIENT,
+    RESTITUTION,
+    POSITION,
+    VELOCITY,
+    MOMENTUM,
+    ROTATION,
+    ANGULAR_VELOCITY,
+    ANGULAR_MOMENTUM,
+    KINETIC_ENERGY,
+    ROTATIONAL_KINETIC_ENERGY,
+    GRAVITATIONAL_POTENTIAL,
+    SPRING_POTENTIAL,
+    TOTAL_ENERGY
+};
+
+inline std::string BodyKeyValue(BodyKeys key) {
+    switch (key) {
+        case MASS: return "mass";
+        case MOMENT_OF_INERTIA: return "momentOfInertia";
+        case DRAG_COEFFICIENT: return "dragCoefficient";
+        case LIFT_COEFFICIENT: return "liftCoefficient";
+        case FRICTION_COEFFICIENT: return "frictionCoefficient";
+        case RESTITUTION: return "restitution";
+        case POSITION: return "position";
+        case VELOCITY: return "velocity";
+        case MOMENTUM: return "momentum";
+        case ROTATION: return "rotation";
+        case ANGULAR_VELOCITY: return "angularVelocity";
+        case ANGULAR_MOMENTUM: return "angularMomentum";
+        case KINETIC_ENERGY: return "kineticEnergy";
+        case ROTATIONAL_KINETIC_ENERGY: return "rotationalKineticEnergy";
+        case GRAVITATIONAL_POTENTIAL: return "gravitationalPotential";
+        case SPRING_POTENTIAL: return "springPotential";
+        case TOTAL_ENERGY: return "totalEnergy";
+        default: return "unknown";
+    }
+}
+
+inline std::string BodyKeyName(BodyKeys key) {
+    switch (key) {
+        case MASS: return "Mass";
+        case MOMENT_OF_INERTIA: return "Moment of Inertia";
+        case DRAG_COEFFICIENT: return "Drag Coefficient";
+        case LIFT_COEFFICIENT: return "Lift Coefficient";
+        case FRICTION_COEFFICIENT: return "Friction Coefficient";
+        case RESTITUTION: return "Restitution";
+        case POSITION: return "Position";
+        case VELOCITY: return "Velocity";
+        case MOMENTUM: return "Momentum";
+        case ROTATION: return "Rotation";
+        case ANGULAR_VELOCITY: return "Angular Velocity";
+        case ANGULAR_MOMENTUM: return "Angular Momentum";
+        case KINETIC_ENERGY: return "Kinetic Energy";
+        case ROTATIONAL_KINETIC_ENERGY: return "Rotational Kinetic Energy";
+        case GRAVITATIONAL_POTENTIAL: return "Gravitational Potential";
+        case SPRING_POTENTIAL: return "Spring Potential";
+        case TOTAL_ENERGY: return "Total Energy";
+        default: return "Unknown";
+    }
+}

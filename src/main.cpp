@@ -412,14 +412,18 @@ int main()
         // Update UI and tools
         ImGui::SFML::Update(window, dtTime);
 
+        // Tools window
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
         ImGui::Begin("Tools", nullptr, toolFlags);
         tools.draw();
+        ImVec2 toolsWindowSize = ImGui::GetWindowSize();
         ImGui::End();
 
         Tool *currentTool = tools.getCurrentTool();
         ToolType type = currentTool->type;
 
         // Tool settings window
+        ImGui::SetNextWindowPos(ImVec2(10 + toolsWindowSize.x + 10, 10), ImGuiCond_Always);
         ImGui::Begin("Tool Settings", nullptr, toolSettingsFlags);
         ImGui::Text(fmt::format("{} Tool", currentTool->getName()).c_str());
         if (type == SELECT)
@@ -516,12 +520,15 @@ int main()
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
             ImGui::DragFloat("Friction Coefficient", &selectedObject->body->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
             ImGui::DragFloat("Restitution", &selectedObject->body->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
+            ImVec2 propWindowSize = ImGui::GetWindowSize();
+            ImGui::SetNextWindowPos(ImVec2(window.getSize().x - propWindowSize.x - 10, 10), ImGuiCond_Once);
             ImGui::End();
         }
 
         // Simulation settings window
         if (settingsOpen)
         {
+            // Position Simulation Settings window at center
             ImGui::Begin("Simulation Settings", &settingsOpen, propFlags);
             ImGui::DragFloat("Gravity (m/s²)", &world.gravity.y, GRAVITY_STEP, MIN_GRAVITY, MAX_GRAVITY);
             ImGui::DragFloat("Air Density (kg/m²)", &world.airDensity, AIR_DENSITY_STEP, MIN_AIR_DENSITY, MAX_AIR_DENSITY);
@@ -539,6 +546,8 @@ int main()
             if (ImGui::Button("Open Logs Folder")) {
                 logger.openLogFolder();
             }
+            ImVec2 settingWindowSize = ImGui::GetWindowSize();
+            ImGui::SetWindowPos(ImVec2((window.getSize().x - settingWindowSize.x) * 0.5f, (window.getSize().y - settingWindowSize.y) * 0.5f), ImGuiCond_Once);
             ImGui::End();
         }
 
