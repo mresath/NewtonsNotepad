@@ -21,6 +21,7 @@ A physics simulator/playground with the following features:
   - Euler's ("Euler")
   - Runge-Kutta 2nd Order ("RK2")
   - Runge-Kutta 4th Order ("RK4")
+  - Dormand-Prince ("DOPRI5")
   - Velocity Verlet ("Verlet")
   - Adams-Bashforth 4th Order ("AB")
   - Adams-Bashforth-Moulton 4th Order ("ABM")
