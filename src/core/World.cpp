@@ -226,7 +226,7 @@ SolverType World::getODESolver() const
     return odeSolver;
 }
 
-double World::getTime() const
+float World::getTime() const
 {
     return time;
 }
@@ -255,7 +255,7 @@ void World::clear()
 {
     clearObjects();
     clearConnectors();
-    time = 0.0;
+    time = 0.0f;
 }
 
 void World::reset()

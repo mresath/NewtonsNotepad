@@ -13,7 +13,7 @@ private:
     SolverType odeSolver = DEFAULT_SOLVER; // Default ODE solver
     int nextObjectID = 0;                  // ID counter for objects
     int nextConnectorID = 0;               // ID counter for connectors
-    double time = 0.0;                     // Simulation time
+    float time = 0.0;                      // Simulation time
 
 public:
     // World properties
@@ -47,7 +47,7 @@ public:
     void setODESolver(SolverType type); // Set the ODE solver type
     SolverType getODESolver() const;    // Get the current ODE solver type
 
-    double getTime() const; // Get the current simulation time
+    float getTime() const; // Get the current simulation time
 
     void initialize();       // Initialize the world with ground etc.
     void clear();            // Clear all objects and connectors from the world

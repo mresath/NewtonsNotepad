@@ -52,12 +52,13 @@ void Logger::saveLog()
 
 void Logger::logWorld()
 {
-    double currentTime = world->getTime();
+    float currentTime = world->getTime();
     WorldState state;
     for (const auto &obj : world->getObjects())
     {
-        if (obj->isStatic) continue;
-        state.insert({ std::to_string(obj->getID()), *(obj->body) });
+        if (obj->isStatic)
+            continue;
+        state.insert({std::to_string(obj->getID()), *(obj->body)});
     }
     jsonLog[currentTime] = state;
 }
@@ -72,7 +73,8 @@ void Logger::clearJSONLog()
     jsonLog.clear();
 }
 
-void Logger::saveJSON() {
+void Logger::saveJSON()
+{
     nlohmann::json j;
     for (const auto &entry : jsonLog)
     {
@@ -95,16 +97,18 @@ JSONLog Logger::getLog() const
     return jsonLog;
 }
 
-Graphable Logger::getGraphable(ToGraph toGraph) const {
+Graphable Logger::getGraphable(ToGraph toGraph) const
+{
     Graphable graphable;
     for (const auto &entry : jsonLog)
     {
-        double time = entry.first;
+        float time = entry.first;
         for (const auto &objState : entry.second)
         {
             std::string objectId = objState.first;
 
-            if (toGraph.find(objectId) == toGraph.end()) continue; // Skip if objectId is not in toGraph
+            if (toGraph.find(objectId) == toGraph.end())
+                continue; // Skip if objectId is not in toGraph
 
             const Body &body = objState.second;
 

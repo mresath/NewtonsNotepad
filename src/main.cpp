@@ -11,30 +11,30 @@
 #include "graphing/Grapher.hpp"
 
 // Helper for gridlines
-void drawGridlines(sf::RenderWindow& window, float majorSpacing = GRID_MAJOR_SPACING, float minorSpacing = GRID_MINOR_SPACING)
+void drawGridlines(sf::RenderWindow &window, float majorSpacing = GRID_MAJOR_SPACING, float minorSpacing = GRID_MINOR_SPACING)
 {
     // Get current view bounds
     sf::View view = window.getView();
     sf::Vector2f viewCenter = view.getCenter();
     sf::Vector2f viewSize = view.getSize();
-    
+
     float left = viewCenter.x - viewSize.x / 2.0f;
     float right = viewCenter.x + viewSize.x / 2.0f;
     float top = viewCenter.y - viewSize.y / 2.0f;
     float bottom = viewCenter.y + viewSize.y / 2.0f;
-    
+
     // Convert to meter spacing in pixels
     float minorSpacingPixels = metersToPixels(minorSpacing);
     float majorSpacingPixels = metersToPixels(majorSpacing);
-    
+
     // Find starting positions aligned to grid
     float startXMinor = std::floor(left / minorSpacingPixels) * minorSpacingPixels;
     float startYMinor = std::floor(top / minorSpacingPixels) * minorSpacingPixels;
-    
-    const sf::Color& minorGridColor = GRID_MINOR_COLOR;
-    const sf::Color& majorGridColor = GRID_MAJOR_COLOR;
-    const sf::Color& axisColor = GRID_AXIS_COLOR;
-    
+
+    const sf::Color &minorGridColor = GRID_MINOR_COLOR;
+    const sf::Color &majorGridColor = GRID_MAJOR_COLOR;
+    const sf::Color &axisColor = GRID_AXIS_COLOR;
+
     // Draw minor vertical lines (1m)
     for (float x = startXMinor; x <= right; x += minorSpacingPixels)
     {
@@ -49,7 +49,7 @@ void drawGridlines(sf::RenderWindow& window, float majorSpacing = GRID_MAJOR_SPA
             window.draw(line);
         }
     }
-    
+
     // Draw minor horizontal lines (1m)
     for (float y = startYMinor; y <= bottom; y += minorSpacingPixels)
     {
@@ -64,27 +64,27 @@ void drawGridlines(sf::RenderWindow& window, float majorSpacing = GRID_MAJOR_SPA
             window.draw(line);
         }
     }
-    
+
     // Draw major vertical lines (5m)
     float startXMajor = std::floor(left / majorSpacingPixels) * majorSpacingPixels;
     for (float x = startXMajor; x <= right; x += majorSpacingPixels)
     {
         bool isAxis = (std::abs(x) < 0.1f); // Check if this is the Y-axis
         sf::Color color = isAxis ? axisColor : majorGridColor;
-        
+
         sf::VertexArray line(sf::PrimitiveType::Lines, 2);
         line[0] = {{x, top}, color};
         line[1] = {{x, bottom}, color};
         window.draw(line);
     }
-    
+
     // Draw major horizontal lines (5m)
     float startYMajor = std::floor(top / majorSpacingPixels) * majorSpacingPixels;
     for (float y = startYMajor; y <= bottom; y += majorSpacingPixels)
     {
         bool isAxis = (std::abs(y) < 0.1f); // Check if this is the X-axis
         sf::Color color = isAxis ? axisColor : majorGridColor;
-        
+
         sf::VertexArray line(sf::PrimitiveType::Lines, 2);
         line[0] = {{left, y}, color};
         line[1] = {{right, y}, color};
@@ -177,12 +177,15 @@ int main()
                     {
                         grapher.closeGraph();
                     }
-                    else {
+                    else
+                    {
                         settingsOpen = !settingsOpen;
                     }
-                } else if (keyReleased->code == sf::Keyboard::Key::G)
+                }
+                else if (keyReleased->code == sf::Keyboard::Key::G)
                 {
-                    if (!settingsOpen) {
+                    if (!settingsOpen)
+                    {
                         grapher.toggleGraph();
                     }
                 }
@@ -773,11 +776,13 @@ int main()
                 world.setODESolver(static_cast<SolverType>(currentSolver));
             }
             ImGui::DragFloat("Calculation Frequency (Hz)", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
-            if (ImGui::Button("Save Logs")) {
+            if (ImGui::Button("Save Logs"))
+            {
                 logger.saveAll();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Open Logs Folder")) {
+            if (ImGui::Button("Open Logs Folder"))
+            {
                 logger.openLogFolder();
             }
             if (ImGui::Button("Load Test Scene"))
@@ -793,7 +798,8 @@ int main()
                 logger.clearAll();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Reset Simulation")) {
+            if (ImGui::Button("Reset Simulation"))
+            {
                 selectedObject = nullptr;
                 grabbedObject = nullptr;
                 object1 = nullptr;
@@ -821,25 +827,32 @@ int main()
         }
 
         // Update world and bodies with fixed timestep
-        if (!settingsOpen && !grapher.isGraphOpen()) {
+        if (!settingsOpen && !grapher.isGraphOpen())
+        {
             // Calculate fixed timestep from calculation frequency
             float fixedDt = 1.0f / world.calculationFrequency;
-            
+
             // Add frame time to accumulator
             accumulator += frameTime;
-            
+
             // Update physics in fixed timesteps
-            while (accumulator >= fixedDt) {
+            while (accumulator >= fixedDt)
+            {
                 world.update(fixedDt);
                 accumulator -= fixedDt;
             }
-            
+
             logger.logWorld();
-        } else {
+        }
+        else
+        {
             std::string pauseReason;
-            if (settingsOpen && !grapher.isGraphOpen()) pauseReason = "Settings Open";
-            else if (!settingsOpen && grapher.isGraphOpen()) pauseReason = "Graph Open";
-            else pauseReason = "Settings and Graph Open"; // Will never happen but just in case
+            if (settingsOpen && !grapher.isGraphOpen())
+                pauseReason = "Settings Open";
+            else if (!settingsOpen && grapher.isGraphOpen())
+                pauseReason = "Graph Open";
+            else
+                pauseReason = "Settings and Graph Open"; // Will never happen but just in case
 
             std::string pauseText = "Paused: " + pauseReason;
 

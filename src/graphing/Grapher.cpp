@@ -65,52 +65,52 @@ void Grapher::clearGraph()
 void Grapher::openGraph()
 {
     using namespace matplot;
-    
+
     // Close existing graph if open
     closeGraph();
-    
+
     // Return early if nothing to graph
     if (toGraph.empty())
     {
         return;
     }
-    
+
     // Get graphable data from logger
     Graphable graphData = logger->getGraphable(toGraph);
-    
+
     // Create new figure
     fig = figure(true);
     fig->quiet_mode(false); // Interactive mode
-    
+
     // Prepare time data (x-axis)
-    std::vector<double> times;
-    for (const auto& [time, _] : graphData)
+    std::vector<float> times;
+    for (const auto &[time, _] : graphData)
     {
-        times.push_back(static_cast<double>(time));
+        times.push_back(static_cast<float>(time));
     }
-    
+
     // Plot each object and property
     int plotIndex = 0;
-    for (const auto& [objectId, properties] : toGraph)
+    for (const auto &[objectId, properties] : toGraph)
     {
-        for (const auto& property : properties)
+        for (const auto &property : properties)
         {
-            std::vector<double> values;
-            
+            std::vector<float> values;
+
             // Extract values for this object and property over time
-            for (const auto& [time, objects] : graphData)
+            for (const auto &[time, objects] : graphData)
             {
-                if (objects.find(objectId) != objects.end() && 
+                if (objects.find(objectId) != objects.end() &&
                     objects.at(objectId).find(property) != objects.at(objectId).end())
                 {
-                    values.push_back(static_cast<double>(objects.at(objectId).at(property)));
+                    values.push_back(static_cast<float>(objects.at(objectId).at(property)));
                 }
                 else
                 {
                     values.push_back(std::nan(""));
                 }
             }
-            
+
             // Only plot if we have data
             if (!times.empty() && !values.empty())
             {
@@ -120,13 +120,13 @@ void Grapher::openGraph()
                 std::string objectLabel = "Object " + objectId;
                 std::string unit = BodyKeyUnit(property);
                 std::string unitLabel = unit.empty() ? "" : " (" + unit + ")";
-                
+
                 line->display_name(objectLabel + " - " + BodyKeyName(property) + unitLabel);
                 plotIndex++;
             }
         }
     }
-    
+
     if (plotIndex > 0)
     {
         xlabel("Time (s)");
