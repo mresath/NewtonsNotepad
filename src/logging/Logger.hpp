@@ -7,7 +7,10 @@
 #include <fstream>
 
 using WorldState = std::map<std::string, Body>;
-using JSONLog = std::map<double, WorldState>;
+using JSONLog = std::map<float, WorldState>;
+
+using ToGraph = std::map<std::string, std::vector<BodyKeys>>; // objectId -> properties
+using Graphable = std::map<float, std::map<std::string, std::map<BodyKeys, float>>>; // time -> objectId -> property -> value
 
 enum LogLevel
 {
@@ -21,8 +24,8 @@ class Logger
 private:
     World *world;
     std::string logFolder = "logs/";
-    std::string logFilename = "log.txt";
-    std::string jsonFilename = "world_log.json";
+    std::string logFilename = "log_";
+    std::string jsonFilename = "world_log_";
 
     std::vector<std::string> logMessages;
     JSONLog jsonLog;
@@ -55,7 +58,12 @@ public:
 
     void saveJSON();
 
+    JSONLog getLog() const; // Get the entire JSON log
+
+    Graphable getGraphable(ToGraph toGraph) const; // Convert JSONLog to Graphable format for graphing
+
     /* GENERAL METHODS */
+
     void openLogFolder();
 
     void clearAll();

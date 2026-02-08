@@ -8,6 +8,89 @@
 #include "core/Tools.hpp"
 #include "core/UI.hpp"
 #include "logging/Logger.hpp"
+#include "graphing/Grapher.hpp"
+
+// Helper for gridlines
+void drawGridlines(sf::RenderWindow& window, float majorSpacing = GRID_MAJOR_SPACING, float minorSpacing = GRID_MINOR_SPACING)
+{
+    // Get current view bounds
+    sf::View view = window.getView();
+    sf::Vector2f viewCenter = view.getCenter();
+    sf::Vector2f viewSize = view.getSize();
+    
+    float left = viewCenter.x - viewSize.x / 2.0f;
+    float right = viewCenter.x + viewSize.x / 2.0f;
+    float top = viewCenter.y - viewSize.y / 2.0f;
+    float bottom = viewCenter.y + viewSize.y / 2.0f;
+    
+    // Convert to meter spacing in pixels
+    float minorSpacingPixels = metersToPixels(minorSpacing);
+    float majorSpacingPixels = metersToPixels(majorSpacing);
+    
+    // Find starting positions aligned to grid
+    float startXMinor = std::floor(left / minorSpacingPixels) * minorSpacingPixels;
+    float startYMinor = std::floor(top / minorSpacingPixels) * minorSpacingPixels;
+    
+    const sf::Color& minorGridColor = GRID_MINOR_COLOR;
+    const sf::Color& majorGridColor = GRID_MAJOR_COLOR;
+    const sf::Color& axisColor = GRID_AXIS_COLOR;
+    
+    // Draw minor vertical lines (1m)
+    for (float x = startXMinor; x <= right; x += minorSpacingPixels)
+    {
+        // Skip if this is a major gridline position
+        float xMeters = x / metersToPixels(1.0f);
+        bool isMajor = (std::abs(std::fmod(xMeters, majorSpacing)) < 0.01f);
+        if (!isMajor)
+        {
+            sf::VertexArray line(sf::PrimitiveType::Lines, 2);
+            line[0] = {{x, top}, minorGridColor};
+            line[1] = {{x, bottom}, minorGridColor};
+            window.draw(line);
+        }
+    }
+    
+    // Draw minor horizontal lines (1m)
+    for (float y = startYMinor; y <= bottom; y += minorSpacingPixels)
+    {
+        // Skip if this is a major gridline position
+        float yMeters = y / metersToPixels(1.0f);
+        bool isMajor = (std::abs(std::fmod(yMeters, majorSpacing)) < 0.01f);
+        if (!isMajor)
+        {
+            sf::VertexArray line(sf::PrimitiveType::Lines, 2);
+            line[0] = {{left, y}, minorGridColor};
+            line[1] = {{right, y}, minorGridColor};
+            window.draw(line);
+        }
+    }
+    
+    // Draw major vertical lines (5m)
+    float startXMajor = std::floor(left / majorSpacingPixels) * majorSpacingPixels;
+    for (float x = startXMajor; x <= right; x += majorSpacingPixels)
+    {
+        bool isAxis = (std::abs(x) < 0.1f); // Check if this is the Y-axis
+        sf::Color color = isAxis ? axisColor : majorGridColor;
+        
+        sf::VertexArray line(sf::PrimitiveType::Lines, 2);
+        line[0] = {{x, top}, color};
+        line[1] = {{x, bottom}, color};
+        window.draw(line);
+    }
+    
+    // Draw major horizontal lines (5m)
+    float startYMajor = std::floor(top / majorSpacingPixels) * majorSpacingPixels;
+    for (float y = startYMajor; y <= bottom; y += majorSpacingPixels)
+    {
+        bool isAxis = (std::abs(y) < 0.1f); // Check if this is the X-axis
+        sf::Color color = isAxis ? axisColor : majorGridColor;
+        
+        sf::VertexArray line(sf::PrimitiveType::Lines, 2);
+        line[0] = {{left, y}, color};
+        line[1] = {{right, y}, color};
+        window.draw(line);
+    }
+}
 
 // Entry point
 int main()
@@ -55,26 +138,12 @@ int main()
     // Fixed timestep accumulator for physics calculations
     float accumulator = 0.0f;
 
-    // Initialize logger
+    // Initialize logger & grapher
     Logger logger(&world);
+    Grapher grapher(&logger);
 
     // Create ground and walls
-    Object *ground = new Object(*pixelsToMeters(new Vec2(0, DEF_HEIGHT - HALF_WALL_THICKNESS)), *pixelsToMeters(new Vec2(WORLD_WIDTH, WALL_THICKNESS)), 1.0f, RECTANGLE);
-    Object *leftWall = new Object(*pixelsToMeters(new Vec2(-(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS), (DEF_HEIGHT - HALF_WALL_THICKNESS) - (WORLD_HEIGHT / 2))), *pixelsToMeters(new Vec2(WALL_THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
-    Object *rightWall = new Object(*pixelsToMeters(new Vec2(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS, (DEF_HEIGHT - HALF_WALL_THICKNESS) - (WORLD_HEIGHT / 2))), *pixelsToMeters(new Vec2(WALL_THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
-    Object *ceiling = new Object(*pixelsToMeters(new Vec2(0, (DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT)), *pixelsToMeters(new Vec2(WORLD_WIDTH, WALL_THICKNESS)), 1.0f, RECTANGLE);
-    ground->setConstant();
-    leftWall->setConstant();
-    rightWall->setConstant();
-    ceiling->setConstant();
-    ground->shape->setFillColor(WALL_COLOR);
-    leftWall->shape->setFillColor(WALL_COLOR);
-    rightWall->shape->setFillColor(WALL_COLOR);
-    ceiling->shape->setFillColor(WALL_COLOR);
-    world.addObject(ground);
-    world.addObject(leftWall);
-    world.addObject(rightWall);
-    world.addObject(ceiling);
+    world.reset();
 
     // Mouse pos pointer for tools & force calculations
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -104,7 +173,18 @@ int main()
             {
                 if (keyReleased->code == sf::Keyboard::Key::Escape)
                 {
-                    settingsOpen = !settingsOpen;
+                    if (grapher.isGraphOpen())
+                    {
+                        grapher.closeGraph();
+                    }
+                    else {
+                        settingsOpen = !settingsOpen;
+                    }
+                } else if (keyReleased->code == sf::Keyboard::Key::G)
+                {
+                    if (!settingsOpen) {
+                        grapher.toggleGraph();
+                    }
                 }
             }
             else if (!ImGui::GetIO().WantCaptureMouse)
@@ -511,25 +591,169 @@ int main()
                 ImGui::Text("Height: %.2f m", selectedObject->dimensions.y);
             }
             ImGui::Text("Mass: %.2f kg", selectedObject->body->mass);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##00"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), MASS);
+            }
+
             ImGui::Separator();
-            ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
+
             ImGui::Text("Position: %s m", standardizePosition(selectedObject->body->position).toString().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Graph X##01"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), POSITION_X);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Graph Y##01"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), POSITION_Y);
+            }
+
+            ImGui::Text("Velocity: %s m/s", selectedObject->body->velocity.toString().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Graph X##02"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), VELOCITY_X);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Graph Y##02"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), VELOCITY_Y);
+            }
+
             ImGui::Separator();
-            ImGui::Text("Angular Velocity: %.2f rad/s", selectedObject->body->angularVelocity);
+
             ImGui::Text("Rotation: %.2f rad", selectedObject->body->rotation);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##03"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), ROTATION);
+            }
+
+            ImGui::Text("Angular Velocity: %.2f rad/s", selectedObject->body->angularVelocity);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##04"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), ANGULAR_VELOCITY);
+            }
+
             ImGui::Separator();
+
             ImGui::Text("Momentum: %s kg·m/s", selectedObject->body->momentum.toString().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Graph X##05"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), MOMENTUM_X);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Graph Y##05"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), MOMENTUM_Y);
+            }
+
             ImGui::Text("Angular Momentum: %.2f kg·m²/s", selectedObject->body->angularMomentum);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##06"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), ANGULAR_MOMENTUM);
+            }
+
             ImGui::Separator();
+
             ImGui::Text("Translational Energy: %.2f J", selectedObject->body->kineticEnergy);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##07"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), KINETIC_ENERGY);
+            }
+
             ImGui::Text("Rotational Energy: %.2f J", selectedObject->body->rotationalKineticEnergy);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##08"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), ROTATIONAL_KINETIC_ENERGY);
+            }
+
             ImGui::Text("Gravitational Potential: %.2f J", selectedObject->body->gravitationalPotential);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##09"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), GRAVITATIONAL_POTENTIAL);
+            }
+
             ImGui::Text("Spring Potential: %.2f J", selectedObject->body->springPotential);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##10"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), SPRING_POTENTIAL);
+            }
+
             ImGui::Text("Total Mechanical Energy: %.2f J", selectedObject->body->totalEnergy);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##11"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), TOTAL_ENERGY);
+            }
+
             ImGui::Separator();
+
             ImGui::DragFloat("Drag Coefficient", &selectedObject->body->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##12"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), DRAG_COEFFICIENT);
+            }
+
+            ImGui::DragFloat("Lift Coefficient", &selectedObject->body->liftCoefficient, LIFT_STEP, MIN_LIFT, MAX_LIFT);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##13"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), LIFT_COEFFICIENT);
+            }
+
             ImGui::DragFloat("Friction Coefficient", &selectedObject->body->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##14"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), FRICTION_COEFFICIENT);
+            }
+
             ImGui::DragFloat("Restitution", &selectedObject->body->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
+            ImGui::SameLine();
+            if (ImGui::Button("Graph##15"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), RESTITUTION);
+            }
+
+            if (ImGui::Button("Test Graph 1"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), POSITION_Y);
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), VELOCITY_Y);
+                grapher.openGraph();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Test Graph 2"))
+            {
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), KINETIC_ENERGY);
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), GRAVITATIONAL_POTENTIAL);
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), SPRING_POTENTIAL);
+                grapher.toggleProperty(std::to_string(selectedObject->getID()), TOTAL_ENERGY);
+                grapher.openGraph();
+            }
+
+            if (ImGui::Button("Clear Graph"))
+            {
+                grapher.clearGraph();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Delete Object"))
+            {
+                world.removeObject(selectedObject->getID());
+                selectedObject = nullptr;
+            }
+
             ImVec2 propWindowSize = ImGui::GetWindowSize();
             ImGui::SetNextWindowPos(ImVec2(window.getSize().x - propWindowSize.x - 10, 10), ImGuiCond_Once);
             ImGui::End();
@@ -556,6 +780,30 @@ int main()
             if (ImGui::Button("Open Logs Folder")) {
                 logger.openLogFolder();
             }
+            if (ImGui::Button("Load Test Scene"))
+            {
+                selectedObject = nullptr;
+                grabbedObject = nullptr;
+                object1 = nullptr;
+                object2 = nullptr;
+                anchor1 = nullptr;
+                anchor2 = nullptr;
+
+                selectedObject = world.loadTestScene();
+                logger.clearAll();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset Simulation")) {
+                selectedObject = nullptr;
+                grabbedObject = nullptr;
+                object1 = nullptr;
+                object2 = nullptr;
+                anchor1 = nullptr;
+                anchor2 = nullptr;
+
+                world.reset();
+                logger.clearAll();
+            }
             ImVec2 settingWindowSize = ImGui::GetWindowSize();
             ImGui::SetWindowPos(ImVec2((window.getSize().x - settingWindowSize.x) * 0.5f, (window.getSize().y - settingWindowSize.y) * 0.5f), ImGuiCond_Always);
             ImGui::End();
@@ -573,7 +821,7 @@ int main()
         }
 
         // Update world and bodies with fixed timestep
-        if (!settingsOpen) {
+        if (!settingsOpen && !grapher.isGraphOpen()) {
             // Calculate fixed timestep from calculation frequency
             float fixedDt = 1.0f / world.calculationFrequency;
             
@@ -587,10 +835,25 @@ int main()
             }
             
             logger.logWorld();
+        } else {
+            std::string pauseReason;
+            if (settingsOpen && !grapher.isGraphOpen()) pauseReason = "Settings Open";
+            else if (!settingsOpen && grapher.isGraphOpen()) pauseReason = "Graph Open";
+            else pauseReason = "Settings and Graph Open"; // Will never happen but just in case
+
+            std::string pauseText = "Paused: " + pauseReason;
+
+            ImGui::Begin("Stats", nullptr, toolFlags);
+            auto statsWidth = ImGui::GetWindowSize().x;
+            auto pauseTextWidth = ImGui::CalcTextSize(pauseText.c_str()).x;
+            ImGui::SetCursorPosX((statsWidth - pauseTextWidth) * 0.5f);
+            ImGui::Text("%s", pauseText.c_str());
+            ImGui::End();
         }
 
         // Clear screen and draw world & ui
-        window.clear(sf::Color::Black);
+        window.clear(BACKGROUND_COLOR);
+        drawGridlines(window);
         world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING);
         if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr))
         {

@@ -7,19 +7,22 @@ class Grapher
 {
 private:
     Logger *logger;
-    std::map<std::string, std::map<std::string, std::map<double, double>>> graphData; // objectId -> property -> time -> value
+    ToGraph toGraph; // objectId -> properties
     std::string graphFolder = "graphs/";
+    
+    matplot::figure_handle fig{nullptr};
 
 public:
     Grapher(Logger *logger) : logger(logger) {}
     ~Grapher();
 
-    void addToGraph(std::string objectId, std::string property);
+    void addToGraph(std::string objectId, BodyKeys property);
+    void removeFromGraph(std::string objectId, BodyKeys property);
+    void toggleProperty(std::string objectId, BodyKeys property);
+    void clearGraph();
 
     void openGraph();
     void closeGraph();
-
-    void saveGraph();
-
-    void update();
+    void toggleGraph();
+    bool isGraphOpen() const;
 };

@@ -30,6 +30,7 @@ add_executable(${PROJECT_NAME}
     src/objects/Connector.cpp
     src/engine/ODE.cpp
     src/logging/Logger.cpp
+    src/graphing/Grapher.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)

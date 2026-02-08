@@ -37,7 +37,7 @@ void Logger::clearLog()
 
 void Logger::saveLog()
 {
-    std::ofstream logFile(logFolder + logFilename, std::ios::out);
+    std::ofstream logFile(logFolder + logFilename + std::to_string(std::time(nullptr)) + ".txt", std::ios::out);
     if (logFile.is_open())
     {
         for (const auto &message : logMessages)
@@ -81,7 +81,7 @@ void Logger::saveJSON() {
             j[std::to_string(entry.first)][objState.first] = objState.second.to_json();
         }
     }
-    std::ofstream jsonFile(logFolder + jsonFilename);
+    std::ofstream jsonFile(logFolder + jsonFilename + std::to_string(std::time(nullptr)) + ".json");
     if (jsonFile.is_open())
     {
         jsonFile << j.dump(4); // Pretty print with 4 spaces indentation
@@ -90,6 +90,33 @@ void Logger::saveJSON() {
 }
 
 /* GENERAL METHODS */
+JSONLog Logger::getLog() const
+{
+    return jsonLog;
+}
+
+Graphable Logger::getGraphable(ToGraph toGraph) const {
+    Graphable graphable;
+    for (const auto &entry : jsonLog)
+    {
+        double time = entry.first;
+        for (const auto &objState : entry.second)
+        {
+            std::string objectId = objState.first;
+
+            if (toGraph.find(objectId) == toGraph.end()) continue; // Skip if objectId is not in toGraph
+
+            const Body &body = objState.second;
+
+            for (const auto &property : toGraph[objectId])
+            {
+                graphable[time][objectId][property] = body.getProperty(property);
+            }
+        }
+    }
+    return graphable;
+}
+
 void Logger::openLogFolder()
 {
 #ifdef _WIN32

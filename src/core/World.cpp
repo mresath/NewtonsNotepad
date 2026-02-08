@@ -230,3 +230,60 @@ double World::getTime() const
 {
     return time;
 }
+
+void World::initialize()
+{
+    Object *ground = new Object(*pixelsToMeters(new Vec2(0, DEF_HEIGHT - HALF_WALL_THICKNESS)), *pixelsToMeters(new Vec2(WORLD_WIDTH, WALL_THICKNESS)), 1.0f, RECTANGLE);
+    Object *leftWall = new Object(*pixelsToMeters(new Vec2(-(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS), (DEF_HEIGHT - HALF_WALL_THICKNESS) - (WORLD_HEIGHT / 2))), *pixelsToMeters(new Vec2(WALL_THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
+    Object *rightWall = new Object(*pixelsToMeters(new Vec2(WORLD_WIDTH / 2 - HALF_WALL_THICKNESS, (DEF_HEIGHT - HALF_WALL_THICKNESS) - (WORLD_HEIGHT / 2))), *pixelsToMeters(new Vec2(WALL_THICKNESS, WORLD_HEIGHT)), 1.0f, RECTANGLE);
+    Object *ceiling = new Object(*pixelsToMeters(new Vec2(0, (DEF_HEIGHT + HALF_WALL_THICKNESS) - WORLD_HEIGHT)), *pixelsToMeters(new Vec2(WORLD_WIDTH, WALL_THICKNESS)), 1.0f, RECTANGLE);
+    ground->setConstant();
+    leftWall->setConstant();
+    rightWall->setConstant();
+    ceiling->setConstant();
+    ground->shape->setFillColor(WALL_COLOR);
+    leftWall->shape->setFillColor(WALL_COLOR);
+    rightWall->shape->setFillColor(WALL_COLOR);
+    ceiling->shape->setFillColor(WALL_COLOR);
+    addObject(ground);
+    addObject(leftWall);
+    addObject(rightWall);
+    addObject(ceiling);
+}
+
+void World::clear()
+{
+    clearObjects();
+    clearConnectors();
+    time = 0.0;
+}
+
+void World::reset()
+{
+    clear();
+    initialize();
+}
+
+Object *World::loadTestScene()
+{
+    reset();
+
+    Vec2 amplitude = Vec2(0.0f, 1.0f);
+    Vec2 origin = Vec2(0.0f, 0.0f);
+    Vec2 length = Vec2(0.0f, 3.0f);
+
+    Object *newCircle = new Object(origin + amplitude, Vec2(0.25f, 0.25f), 1.0f, CIRCLE);
+
+    newCircle->body->dragCoefficient = 0.0f;
+    newCircle->body->liftCoefficient = 0.0f;
+    newCircle->body->frictionCoefficient = 0.0f;
+    newCircle->body->restitution = 0.7f;
+
+    addObject(newCircle);
+
+    Spring *newSpring = new Spring(newCircle, Vec2(0.0f, 0.0f), nullptr, origin - length, 50.0f, 0.0f, length.y);
+
+    addConnector(newSpring);
+
+    return newCircle;
+}

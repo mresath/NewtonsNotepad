@@ -3,6 +3,33 @@
 #include "math/Vec2.hpp"
 #include <nlohmann/json.hpp>
 
+enum BodyKeys
+{
+    MASS,
+    MOMENT_OF_INERTIA,
+    DRAG_COEFFICIENT,
+    LIFT_COEFFICIENT,
+    FRICTION_COEFFICIENT,
+    RESTITUTION,
+    POSITION,
+    POSITION_X,
+    POSITION_Y,
+    VELOCITY,
+    VELOCITY_X,
+    VELOCITY_Y,
+    MOMENTUM,
+    MOMENTUM_X,
+    MOMENTUM_Y,
+    ROTATION,
+    ANGULAR_VELOCITY,
+    ANGULAR_MOMENTUM,
+    KINETIC_ENERGY,
+    ROTATIONAL_KINETIC_ENERGY,
+    GRAVITATIONAL_POTENTIAL,
+    SPRING_POTENTIAL,
+    TOTAL_ENERGY
+};
+
 struct Body
 {
     // Motion Vectors
@@ -12,7 +39,7 @@ struct Body
     Vec2 netForce;
 
     // Rotational Motion - Counterclockwise positive
-    float rotation = 0.0f;       // In radians
+    float rotation = 0.0f;        // In radians
     float angularVelocity = 0.0f; // In radians per second
     float angularAcceleration = 0.0f;
     float netTorque = 0.0f;
@@ -40,7 +67,8 @@ struct Body
     float restitution = 0.7f;
 
     // Constructors
-    Body() {
+    Body()
+    {
         mass = 1.0f;
         invMass = 1.0f;
         momentOfInertia = 1.0f;
@@ -51,6 +79,43 @@ struct Body
     {
         this->invMass = (mass == 0.0f) ? 0.0f : 1.0f / mass;
         this->invMomentOfInertia = (momentOfInertia == 0.0f) ? 0.0f : 1.0f / momentOfInertia;
+    }
+
+    Body(const nlohmann::json &j)
+    {
+        *this = from_json(j);
+    }
+
+    static Body from_json(const nlohmann::json &j)
+    {
+        Body body;
+
+        body.mass = j["properties"]["mass"].get<float>();
+        body.momentOfInertia = j["properties"]["momentOfInertia"].get<float>();
+
+        body.dragCoefficient = j["coefficients"]["drag"].get<float>();
+        body.liftCoefficient = j["coefficients"]["lift"].get<float>();
+        body.frictionCoefficient = j["coefficients"]["friction"].get<float>();
+        body.restitution = j["coefficients"]["restitution"].get<float>();
+
+        body.position.set(j["state"]["linear"]["position"][0].get<float>(),
+                          j["state"]["linear"]["position"][1].get<float>());
+        body.velocity.set(j["state"]["linear"]["velocity"][0].get<float>(),
+                          j["state"]["linear"]["velocity"][1].get<float>());
+        body.momentum.set(j["state"]["linear"]["momentum"][0].get<float>(),
+                          j["state"]["linear"]["momentum"][1].get<float>());
+
+        body.rotation = j["state"]["rotational"]["rotation"].get<float>();
+        body.angularVelocity = j["state"]["rotational"]["angularVelocity"].get<float>();
+        body.angularMomentum = j["state"]["rotational"]["angularMomentum"].get<float>();
+
+        body.kineticEnergy = j["state"]["energies"]["kinetic"].get<float>();
+        body.rotationalKineticEnergy = j["state"]["energies"]["rotationalKinetic"].get<float>();
+        body.gravitationalPotential = j["state"]["energies"]["gravitationalPotential"].get<float>();
+        body.springPotential = j["state"]["energies"]["springPotential"].get<float>();
+        body.totalEnergy = j["state"]["energies"]["totalEnergy"].get<float>();
+
+        return body;
     }
 
     nlohmann::json to_json() const
@@ -70,9 +135,9 @@ struct Body
         nlohmann::json state;
 
         nlohmann::json linear;
-        linear["position"] = { position.x, position.y };
-        linear["velocity"] = { velocity.x, velocity.y };
-        linear["momentum"] = { momentum.x, momentum.y };
+        linear["position"] = {position.x, position.y};
+        linear["velocity"] = {velocity.x, velocity.y};
+        linear["momentum"] = {momentum.x, momentum.y};
 
         nlohmann::json rotational;
         rotational["rotation"] = rotation;
@@ -96,70 +161,224 @@ struct Body
 
         return j;
     }
+
+    float getProperty(BodyKeys key) const
+    {
+        switch (key)
+        {
+        case MASS:
+            return mass;
+        case MOMENT_OF_INERTIA:
+            return momentOfInertia;
+        case DRAG_COEFFICIENT:
+            return dragCoefficient;
+        case LIFT_COEFFICIENT:
+            return liftCoefficient;
+        case FRICTION_COEFFICIENT:
+            return frictionCoefficient;
+        case RESTITUTION:
+            return restitution;
+        case POSITION:
+            return position.length(); // Return magnitude of position vector
+        case POSITION_X:
+            return position.x;
+        case POSITION_Y:
+            return position.y;
+        case VELOCITY:
+            return velocity.length(); // Return speed
+        case VELOCITY_X:
+            return velocity.x;
+        case VELOCITY_Y:
+            return velocity.y;
+        case MOMENTUM:
+            return momentum.length(); // Return magnitude of momentum vector
+        case MOMENTUM_X:
+            return momentum.x;
+        case MOMENTUM_Y:    
+            return momentum.y;
+        case ROTATION:
+            return rotation;
+        case ANGULAR_VELOCITY:
+            return angularVelocity;
+        case ANGULAR_MOMENTUM:
+            return angularMomentum;
+        case KINETIC_ENERGY:
+            return kineticEnergy;
+        case ROTATIONAL_KINETIC_ENERGY:
+            return rotationalKineticEnergy;
+        case GRAVITATIONAL_POTENTIAL:
+            return gravitationalPotential;
+        case SPRING_POTENTIAL:
+            return springPotential;
+        case TOTAL_ENERGY:
+            return totalEnergy;
+        default:
+            throw std::invalid_argument("Invalid BodyKey");
+        }
+    }
 };
 
-enum BodyKeys {
-    MASS,
-    MOMENT_OF_INERTIA,
-    DRAG_COEFFICIENT,
-    LIFT_COEFFICIENT,
-    FRICTION_COEFFICIENT,
-    RESTITUTION,
-    POSITION,
-    VELOCITY,
-    MOMENTUM,
-    ROTATION,
-    ANGULAR_VELOCITY,
-    ANGULAR_MOMENTUM,
-    KINETIC_ENERGY,
-    ROTATIONAL_KINETIC_ENERGY,
-    GRAVITATIONAL_POTENTIAL,
-    SPRING_POTENTIAL,
-    TOTAL_ENERGY
-};
-
-inline std::string BodyKeyValue(BodyKeys key) {
-    switch (key) {
-        case MASS: return "mass";
-        case MOMENT_OF_INERTIA: return "momentOfInertia";
-        case DRAG_COEFFICIENT: return "dragCoefficient";
-        case LIFT_COEFFICIENT: return "liftCoefficient";
-        case FRICTION_COEFFICIENT: return "frictionCoefficient";
-        case RESTITUTION: return "restitution";
-        case POSITION: return "position";
-        case VELOCITY: return "velocity";
-        case MOMENTUM: return "momentum";
-        case ROTATION: return "rotation";
-        case ANGULAR_VELOCITY: return "angularVelocity";
-        case ANGULAR_MOMENTUM: return "angularMomentum";
-        case KINETIC_ENERGY: return "kineticEnergy";
-        case ROTATIONAL_KINETIC_ENERGY: return "rotationalKineticEnergy";
-        case GRAVITATIONAL_POTENTIAL: return "gravitationalPotential";
-        case SPRING_POTENTIAL: return "springPotential";
-        case TOTAL_ENERGY: return "totalEnergy";
-        default: return "unknown";
+inline std::string BodyKeyValue(BodyKeys key)
+{
+    switch (key)
+    {
+    case MASS:
+        return "mass";
+    case MOMENT_OF_INERTIA:
+        return "momentOfInertia";
+    case DRAG_COEFFICIENT:
+        return "dragCoefficient";
+    case LIFT_COEFFICIENT:
+        return "liftCoefficient";
+    case FRICTION_COEFFICIENT:
+        return "frictionCoefficient";
+    case RESTITUTION:
+        return "restitution";
+    case POSITION:
+        return "position";
+    case POSITION_X:
+        return "positionX";
+    case POSITION_Y:
+        return "positionY";
+    case VELOCITY:
+        return "velocity";
+    case VELOCITY_X:
+        return "velocityX";
+    case VELOCITY_Y:
+        return "velocityY";
+    case MOMENTUM:
+        return "momentum";
+    case MOMENTUM_X:
+        return "momentumX";
+    case MOMENTUM_Y:
+        return "momentumY";
+    case ROTATION:
+        return "rotation";
+    case ANGULAR_VELOCITY:
+        return "angularVelocity";
+    case ANGULAR_MOMENTUM:
+        return "angularMomentum";
+    case KINETIC_ENERGY:
+        return "kineticEnergy";
+    case ROTATIONAL_KINETIC_ENERGY:
+        return "rotationalKineticEnergy";
+    case GRAVITATIONAL_POTENTIAL:
+        return "gravitationalPotential";
+    case SPRING_POTENTIAL:
+        return "springPotential";
+    case TOTAL_ENERGY:
+        return "totalEnergy";
+    default:
+        return "unknown";
     }
 }
 
-inline std::string BodyKeyName(BodyKeys key) {
-    switch (key) {
-        case MASS: return "Mass";
-        case MOMENT_OF_INERTIA: return "Moment of Inertia";
-        case DRAG_COEFFICIENT: return "Drag Coefficient";
-        case LIFT_COEFFICIENT: return "Lift Coefficient";
-        case FRICTION_COEFFICIENT: return "Friction Coefficient";
-        case RESTITUTION: return "Restitution";
-        case POSITION: return "Position";
-        case VELOCITY: return "Velocity";
-        case MOMENTUM: return "Momentum";
-        case ROTATION: return "Rotation";
-        case ANGULAR_VELOCITY: return "Angular Velocity";
-        case ANGULAR_MOMENTUM: return "Angular Momentum";
-        case KINETIC_ENERGY: return "Kinetic Energy";
-        case ROTATIONAL_KINETIC_ENERGY: return "Rotational Kinetic Energy";
-        case GRAVITATIONAL_POTENTIAL: return "Gravitational Potential";
-        case SPRING_POTENTIAL: return "Spring Potential";
-        case TOTAL_ENERGY: return "Total Energy";
-        default: return "Unknown";
+inline std::string BodyKeyName(BodyKeys key)
+{
+    switch (key)
+    {
+    case MASS:
+        return "Mass";
+    case MOMENT_OF_INERTIA:
+        return "Moment of Inertia";
+    case DRAG_COEFFICIENT:
+        return "Drag Coefficient";
+    case LIFT_COEFFICIENT:
+        return "Lift Coefficient";
+    case FRICTION_COEFFICIENT:
+        return "Friction Coefficient";
+    case RESTITUTION:
+        return "Restitution";
+    case POSITION:
+        return "Position";
+    case POSITION_X:
+        return "Position (X)";
+    case POSITION_Y:
+        return "Position (Y)";
+    case VELOCITY:
+        return "Velocity";
+    case VELOCITY_X:
+        return "Velocity (X)";
+    case VELOCITY_Y:
+        return "Velocity (Y)";
+    case MOMENTUM:
+        return "Momentum";
+    case MOMENTUM_X:
+        return "Momentum (X)";
+    case MOMENTUM_Y:
+        return "Momentum (Y)";
+    case ROTATION:
+        return "Rotation";
+    case ANGULAR_VELOCITY:
+        return "Angular Velocity";
+    case ANGULAR_MOMENTUM:
+        return "Angular Momentum";
+    case KINETIC_ENERGY:
+        return "Kinetic Energy";
+    case ROTATIONAL_KINETIC_ENERGY:
+        return "Rotational Kinetic Energy";
+    case GRAVITATIONAL_POTENTIAL:
+        return "Gravitational Potential";
+    case SPRING_POTENTIAL:
+        return "Spring Potential";
+    case TOTAL_ENERGY:
+        return "Total Energy";
+    default:
+        return "Unknown";
+    }
+}
+
+inline std::string BodyKeyUnit(BodyKeys key)
+{
+    switch (key)
+    {
+    case MASS:
+        return "kg";
+    case MOMENT_OF_INERTIA:
+        return "kg·m²";
+    case DRAG_COEFFICIENT:
+        return "";
+    case LIFT_COEFFICIENT:
+        return "";
+    case FRICTION_COEFFICIENT:
+        return "";
+    case RESTITUTION:
+        return "";
+    case POSITION:
+        return "m";
+    case POSITION_X:
+        return "m";
+    case POSITION_Y:
+        return "m";
+    case VELOCITY:
+        return "m/s";
+    case VELOCITY_X:
+        return "m/s";
+    case VELOCITY_Y:
+        return "m/s";
+    case MOMENTUM:
+        return "kg·m/s";
+    case MOMENTUM_X:
+        return "kg·m/s";
+    case MOMENTUM_Y:
+        return "kg·m/s";
+    case ROTATION:
+        return "rad";
+    case ANGULAR_VELOCITY:
+        return "rad/s";
+    case ANGULAR_MOMENTUM:
+        return "kg·m²/s";
+    case KINETIC_ENERGY:
+        return "J";
+    case ROTATIONAL_KINETIC_ENERGY:
+        return "J";
+    case GRAVITATIONAL_POTENTIAL:
+        return "J";
+    case SPRING_POTENTIAL:
+        return "J";
+    case TOTAL_ENERGY:
+        return "J";
+    default:
+        return "";
     }
 }

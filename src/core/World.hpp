@@ -48,4 +48,9 @@ public:
     SolverType getODESolver() const;    // Get the current ODE solver type
 
     double getTime() const; // Get the current simulation time
+
+    void initialize();       // Initialize the world with ground etc.
+    void clear();            // Clear all objects and connectors from the world
+    void reset();            // Reset the world to initial state
+    Object *loadTestScene(); // Load a predefined test scene with objects and connectors
 };
