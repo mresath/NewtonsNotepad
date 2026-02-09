@@ -796,6 +796,7 @@ int main()
 
                 selectedObject = world.loadTestScene();
                 logger.clearAll();
+                grapher.clearGraph();
             }
             ImGui::SameLine();
             if (ImGui::Button("Reset Simulation"))
@@ -809,6 +810,7 @@ int main()
 
                 world.reset();
                 logger.clearAll();
+                grapher.clearGraph();
             }
             ImVec2 settingWindowSize = ImGui::GetWindowSize();
             ImGui::SetWindowPos(ImVec2((window.getSize().x - settingWindowSize.x) * 0.5f, (window.getSize().y - settingWindowSize.y) * 0.5f), ImGuiCond_Always);
