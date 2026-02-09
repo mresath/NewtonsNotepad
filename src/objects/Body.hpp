@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/Vec2.hpp"
+#include "math/Util.hpp"
 #include <nlohmann/json.hpp>
 
 enum BodyKeys
@@ -100,6 +101,7 @@ struct Body
 
         body.position.set(j["state"]["linear"]["position"][0].get<float>(),
                           j["state"]["linear"]["position"][1].get<float>());
+        body.position = destandardizePosition(body.position);
         body.velocity.set(j["state"]["linear"]["velocity"][0].get<float>(),
                           j["state"]["linear"]["velocity"][1].get<float>());
         body.momentum.set(j["state"]["linear"]["momentum"][0].get<float>(),
@@ -135,7 +137,8 @@ struct Body
         nlohmann::json state;
 
         nlohmann::json linear;
-        linear["position"] = {position.x, position.y};
+        Vec2 sPos = standardizePosition(position);
+        linear["position"] = {sPos.x, sPos.y};
         linear["velocity"] = {velocity.x, velocity.y};
         linear["momentum"] = {momentum.x, momentum.y};
 
@@ -164,6 +167,7 @@ struct Body
 
     float getProperty(BodyKeys key) const
     {
+        Vec2 sPos = standardizePosition(position);
         switch (key)
         {
         case MASS:
@@ -179,11 +183,11 @@ struct Body
         case RESTITUTION:
             return restitution;
         case POSITION:
-            return position.length(); // Return magnitude of position vector
+            return sPos.length(); // Return magnitude of position vector
         case POSITION_X:
-            return position.x;
+            return sPos.x;
         case POSITION_Y:
-            return position.y;
+            return sPos.y;
         case VELOCITY:
             return velocity.length(); // Return speed
         case VELOCITY_X:
@@ -292,21 +296,21 @@ inline std::string BodyKeyName(BodyKeys key)
     case POSITION:
         return "Position";
     case POSITION_X:
-        return "Position (X)";
+        return "Position.X";
     case POSITION_Y:
-        return "Position (Y)";
+        return "Position.Y";
     case VELOCITY:
         return "Velocity";
     case VELOCITY_X:
-        return "Velocity (X)";
+        return "Velocity.X";
     case VELOCITY_Y:
-        return "Velocity (Y)";
+        return "Velocity.Y";
     case MOMENTUM:
         return "Momentum";
     case MOMENTUM_X:
-        return "Momentum (X)";
+        return "Momentum.X";
     case MOMENTUM_Y:
-        return "Momentum (Y)";
+        return "Momentum.Y";
     case ROTATION:
         return "Rotation";
     case ANGULAR_VELOCITY:

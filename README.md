@@ -66,3 +66,7 @@ You can save the graph as an image through the graphing window.
 ## Test Setup
 
 As this simulation was made to compare ODE solvers, a simple test scene with an object and a spring has been coded into it. You can load it through the simulation settings, and graph important quantities in the object properties panel.
+
+## Notes
+
+- The latest version of imgui-sfml requires imgui 1.91.x, so to compile the project you need to checkout v1.91.9b for that submodule.
