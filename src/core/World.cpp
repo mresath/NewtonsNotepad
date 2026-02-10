@@ -131,13 +131,11 @@ void World::update(float dt)
         {
             float airDensity = this->airDensity;
             float area = M_PI * object->dimensions.x;
+            
             ForceSource magnusSource("magnus", [airDensity, area](Body state)
                                      {
-                Vec2 liftDir = state.velocity.perpendicular().normalized();
-                float speedSq = state.velocity.lengthSquared();
-                float magnusMagnitude = 0.5f * airDensity * speedSq * area * state.liftCoefficient * state.angularVelocity;
-                Vec2 liftForce = liftDir * magnusMagnitude;
-                return Force(Vec2(0, 0), liftForce); });
+                // TODO - implement
+                return Force(Vec2(0, 0), Vec2(0, 0)); });
             object->applyForce(magnusSource);
         }
         else
