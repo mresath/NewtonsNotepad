@@ -21,6 +21,7 @@ A physics simulator/playground with the following features:
 - Adjustable Time Step
 - 7 ODE Solvers Using The Following Methods:
   - Euler's ("Euler")
+  - Semi-Implicit Euler's  ("EulerS")
   - Runge-Kutta 2nd Order ("RK2")
   - Runge-Kutta 4th Order ("RK4")
   - Dormand-Prince ("DOPRI5")
