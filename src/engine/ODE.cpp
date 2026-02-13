@@ -63,6 +63,42 @@ void EulerSolver::step(float dt)
 
     body->netForce = std::get<0>(netForceTorque).force;
     body->acceleration = body->netForce * body->invMass;
+    body->position += body->velocity * dt;
+    body->velocity += body->acceleration * dt;
+
+    body->netTorque = std::get<1>(netForceTorque);
+    body->angularAcceleration = body->netTorque * body->invMomentOfInertia;
+    body->angularVelocity += body->angularAcceleration * dt;
+    body->rotation += body->angularVelocity * dt;
+}
+Body EulerSolver::simulate(float dt)
+{
+    Body tempBody = *object->body;
+
+    std::tuple<Force, float> netForceTorque = object->getNetForce();
+
+    tempBody.netForce = std::get<0>(netForceTorque).force;
+    tempBody.acceleration = tempBody.netForce * tempBody.invMass;
+    tempBody.position += tempBody.velocity * dt;
+    tempBody.velocity += tempBody.acceleration * dt;
+
+    tempBody.netTorque = std::get<1>(netForceTorque);
+    tempBody.angularAcceleration = tempBody.netTorque * tempBody.invMomentOfInertia;
+    tempBody.rotation += tempBody.angularVelocity * dt;
+    tempBody.angularVelocity += tempBody.angularAcceleration * dt;
+
+    return tempBody;
+}
+
+// Euler (Symplectic) Solver Implementation
+void EulerSympSolver::step(float dt)
+{
+    Body *body = object->body;
+
+    std::tuple<Force, float> netForceTorque = object->getNetForce();
+
+    body->netForce = std::get<0>(netForceTorque).force;
+    body->acceleration = body->netForce * body->invMass;
     body->velocity += body->acceleration * dt;
     body->position += body->velocity * dt;
 
@@ -71,7 +107,7 @@ void EulerSolver::step(float dt)
     body->angularVelocity += body->angularAcceleration * dt;
     body->rotation += body->angularVelocity * dt;
 }
-Body EulerSolver::simulate(float dt)
+Body EulerSympSolver::simulate(float dt)
 {
     Body tempBody = *object->body;
 
@@ -459,31 +495,6 @@ Body DOPRI5Solver::simulate(float dt)
         k6.angularAcceleration += std::get<1>(ft) * tempBody.invMomentOfInertia;
     }
 
-    // K7: Evaluate at t + dt
-    RKDerivatives k7_input;
-    k7_input.velocity = k1.velocity * (35.0f / 384.0f) + k3.velocity * (500.0f / 1113.0f) + k4.velocity * (125.0f / 192.0f) - k5.velocity * (2187.0f / 6784.0f) + k6.velocity * (11.0f / 84.0f);
-    k7_input.acceleration = k1.acceleration * (35.0f / 384.0f) + k3.acceleration * (500.0f / 1113.0f) + k4.acceleration * (125.0f / 192.0f) - k5.acceleration * (2187.0f / 6784.0f) + k6.acceleration * (11.0f / 84.0f);
-    k7_input.angularVelocity = k1.angularVelocity * (35.0f / 384.0f) + k3.angularVelocity * (500.0f / 1113.0f) + k4.angularVelocity * (125.0f / 192.0f) - k5.angularVelocity * (2187.0f / 6784.0f) + k6.angularVelocity * (11.0f / 84.0f);
-    k7_input.angularAcceleration = k1.angularAcceleration * (35.0f / 384.0f) + k3.angularAcceleration * (500.0f / 1113.0f) + k4.angularAcceleration * (125.0f / 192.0f) - k5.angularAcceleration * (2187.0f / 6784.0f) + k6.angularAcceleration * (11.0f / 84.0f);
-
-    Body intermediateBody7 = tempBody;
-    intermediateBody7.position = tempBody.position + k7_input.velocity * dt;
-    intermediateBody7.velocity = tempBody.velocity + k7_input.acceleration * dt;
-    intermediateBody7.rotation = tempBody.rotation + k7_input.angularVelocity * dt;
-    intermediateBody7.angularVelocity = tempBody.angularVelocity + k7_input.angularAcceleration * dt;
-
-    RKDerivatives k7;
-    k7.velocity = intermediateBody7.velocity;
-    k7.angularVelocity = intermediateBody7.angularVelocity;
-    k7.acceleration = Vec2(0.0f, 0.0f);
-    k7.angularAcceleration = 0.0f;
-    for (auto forceSource : object->getForces())
-    {
-        std::tuple<Force, float> ft = forceSource->calculateForce(intermediateBody7);
-        k7.acceleration += std::get<0>(ft).force * tempBody.invMass;
-        k7.angularAcceleration += std::get<1>(ft) * tempBody.invMomentOfInertia;
-    }
-
     // Final weighted combination for 5th order solution
     tempBody.velocity += (k1.acceleration * (35.0f / 384.0f) + k3.acceleration * (500.0f / 1113.0f) + k4.acceleration * (125.0f / 192.0f) - k5.acceleration * (2187.0f / 6784.0f) + k6.acceleration * (11.0f / 84.0f)) * dt;
     tempBody.position += (k1.velocity * (35.0f / 384.0f) + k3.velocity * (500.0f / 1113.0f) + k4.velocity * (125.0f / 192.0f) - k5.velocity * (2187.0f / 6784.0f) + k6.velocity * (11.0f / 84.0f)) * dt;
@@ -496,7 +507,7 @@ Body DOPRI5Solver::simulate(float dt)
     return tempBody;
 }
 
-// Velocity Verlet Solver Implementation (Symplectic)
+// Velocity Verlet Solver Implementation
 void VerletSolver::step(float dt)
 {
     Body *body = object->body;

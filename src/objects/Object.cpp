@@ -41,6 +41,9 @@ Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
     case EULER:
         solver = new EulerSolver(this);
         break;
+    case EULERS:
+        solver = new EulerSympSolver(this);
+        break;
     case RK2:
         solver = new RK2Solver(this);
         break;
@@ -150,6 +153,9 @@ void Object::switchSolver(SolverType type)
     {
     case EULER:
         newSolver = new EulerSolver(this);
+        break;
+    case EULERS:
+        newSolver = new EulerSympSolver(this);
         break;
     case RK2:
         newSolver = new RK2Solver(this);

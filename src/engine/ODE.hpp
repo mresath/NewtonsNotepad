@@ -8,6 +8,7 @@ class Object;
 enum SolverType : unsigned short
 {
     EULER,
+    EULERS,
     RK2,
     RK4,
     VERLET,
@@ -22,6 +23,8 @@ inline std::string solverTypeToString(SolverType type)
     {
     case EULER:
         return "Euler";
+    case EULERS:
+        return "EulerS";
     case RK2:
         return "RK2";
     case RK4:
@@ -55,6 +58,14 @@ class EulerSolver : public ODESolver
 {
 public:
     EulerSolver(Object *initialState) : ODESolver(initialState) {}
+    void step(float dt) override;
+    Body simulate(float dt) override;
+};
+
+class EulerSympSolver : public ODESolver
+{
+public:
+    EulerSympSolver(Object *initialState) : ODESolver(initialState) {}
     void step(float dt) override;
     Body simulate(float dt) override;
 };
