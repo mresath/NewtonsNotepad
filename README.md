@@ -38,8 +38,6 @@ Download the latest release for your operating system and launch.
 
 If graphing doesn't work, you may need to install [gnuplot](http://www.gnuplot.info/).
 
-If you can't save your graphs or certain graph to image features don't work, you may be missing the related image library.
-
 ## Controls
 
 - LMB to use tools or interact with objects
