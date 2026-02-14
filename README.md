@@ -46,6 +46,8 @@ If you can't save your graphs or certain graph to image features don't work, you
 - Hold RMB and move your mouse to pan
 - Scroll to zoom in/out
 - Esc to toggle settings
+- P to pause
+- S to capture screenshot
 - G to toggle graphing
 
 ## Logging

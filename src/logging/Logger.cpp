@@ -91,6 +91,30 @@ void Logger::saveJSON()
     }
 }
 
+/* SCREENSHOT METHODS */
+void Logger::pendScreenshot()
+{
+    pendingCapture = true;
+}
+
+void Logger::executeScreenshot(sf::RenderWindow *window)
+{
+    if (pendingCapture)
+    {
+        sf::Texture texture;
+        texture.resize(window->getSize());
+        texture.setSmooth(true);
+        texture.setRepeated(false);
+        texture.update(*window);
+
+        sf::Image screenshot = texture.copyToImage();
+        std::string filename = screenshotFolder + "screenshot_" + std::to_string(std::time(nullptr)) + ".png";
+        screenshot.saveToFile(filename);
+
+        pendingCapture = false;
+    }
+}
+
 /* GENERAL METHODS */
 JSONLog Logger::getLog() const
 {

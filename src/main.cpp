@@ -101,6 +101,7 @@ int main()
     const int toolSettingsFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
     bool settingsOpen = false;
+    bool paused = false;
 
     Object *selectedObject = nullptr;
     Object *grabbedObject = nullptr;
@@ -188,6 +189,14 @@ int main()
                     {
                         grapher.toggleGraph();
                     }
+                }
+                else if (keyReleased->code == sf::Keyboard::Key::S)
+                {
+                    logger.pendScreenshot();
+                }
+                else if (keyReleased->code == sf::Keyboard::Key::P)
+                {
+                    paused = !paused;
                 }
             }
             else if (!ImGui::GetIO().WantCaptureMouse)
@@ -820,7 +829,7 @@ int main()
         }
 
         // Update world and bodies with fixed timestep
-        if (!settingsOpen && !grapher.isGraphOpen())
+        if (!settingsOpen && !grapher.isGraphOpen() && !paused)
         {
             // Calculate fixed timestep from calculation frequency
             float fixedDt = 1.0f / world.calculationFrequency;
@@ -844,8 +853,12 @@ int main()
                 pauseReason = "Settings Open";
             else if (!settingsOpen && grapher.isGraphOpen())
                 pauseReason = "Graph Open";
-            else
+            else if (settingsOpen && grapher.isGraphOpen())
                 pauseReason = "Settings and Graph Open"; // Will never happen but just in case
+            else if (paused)
+                pauseReason = "User Paused";
+            else
+                pauseReason = "Unknown";
 
             std::string pauseText = "Paused: " + pauseReason;
 
@@ -891,6 +904,8 @@ int main()
         }
         ImGui::SFML::Render(window);
         window.display();
+
+        logger.executeScreenshot(&window);
     }
 
     ImGui::SFML::Shutdown();
