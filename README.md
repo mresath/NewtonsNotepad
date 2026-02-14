@@ -16,11 +16,12 @@ A physics simulator/playground with the following features:
   - Push & Pool Tools
 - Real Quantities & Units
   - The minor and major gridlines represent 1m and 5m respectively
-  - Right and down are taken to be positive for consistenct with the graphics library
+  - In the code, right and down are taken to be positive for consistency with the graphics library
+  - The position is standardized when exposed to the user, right and up being positive, and the ground being y=0
 - Adjustable Time Step
 - 7 ODE Solvers Using The Following Methods:
   - Euler's ("Euler")
-  - Semi-Implicit Euler's  ("EulerS")
+  - Semi-Implicit Euler's ("EulerS")
   - Runge-Kutta 2nd Order ("RK2")
   - Runge-Kutta 4th Order ("RK4")
   - Dormand-Prince ("DOPRI5")
