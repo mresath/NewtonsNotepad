@@ -27,6 +27,7 @@ private:
     std::string logFilename = "log_";
     std::string jsonFilename = "world_log_";
     std::string screenshotFolder = "screenshots/";
+    std::string graphsFolder = "graphs/";
 
     std::vector<std::string> logMessages;
     JSONLog jsonLog;
@@ -43,6 +44,10 @@ public:
         if (!std::filesystem::exists(screenshotFolder))
         {
             std::filesystem::create_directory(screenshotFolder);
+        }
+        if (!std::filesystem::exists(graphsFolder))
+        {
+            std::filesystem::create_directory(graphsFolder);
         }
     };
     ~Logger();

@@ -103,6 +103,8 @@ int main()
     bool settingsOpen = false;
     bool paused = false;
 
+    bool testing = false;
+
     Object *selectedObject = nullptr;
     Object *grabbedObject = nullptr;
 
@@ -797,6 +799,8 @@ int main()
                 selectedObject = world.loadTestScene();
                 logger.clearAll();
                 grapher.clearGraph();
+
+                testing = true;
             }
             ImGui::SameLine();
             if (ImGui::Button("Reset Simulation"))
@@ -845,6 +849,13 @@ int main()
             }
 
             logger.logWorld();
+
+            // Automatically pause at 5 seconds for the test setup
+            if (testing && world.getTime() >= TEST_SCENE_DURATION)
+            {
+                paused = true;
+                testing = false;
+            }
         }
         else
         {

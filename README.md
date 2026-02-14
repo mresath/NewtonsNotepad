@@ -68,7 +68,7 @@ You can save the graph as an image through the graphing window.
 
 ## Test Setup
 
-As this simulation was made to compare ODE solvers, a simple test scene with an object and a spring has been coded into it. You can load it through the simulation settings, and graph important quantities in the object properties panel.
+As this simulation was made to compare ODE solvers, a simple test scene with an object and a spring has been coded into it. You can load it through the simulation settings, and graph important quantities in the object properties panel. After loading a test scene, the simulation automatically pauses after 3 seconds.
 
 ## Notes
 
