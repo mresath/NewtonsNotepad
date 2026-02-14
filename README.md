@@ -11,7 +11,6 @@ A physics simulator/playground with the following features:
   - Impulse-based Collisions
   - Impulse-based Friction
   - Air Drag
-  - Magnus Effect
   - Springs
   - Cables / Struts
   - Push & Pool Tools
@@ -28,7 +27,7 @@ A physics simulator/playground with the following features:
   - Velocity Verlet ("Verlet")
   - Adams-Bashforth 4th Order ("AB")
   - Adams-Bashforth-Moulton 4th Order ("ABM")
-- Quantity Logging and Graphing for Analysis (In Development)
+- Quantity Logging and Graphing for Analysis
 
 This simulation was initially created as a yearly homework project for AP Calculus BC, aiming to research and compare different methods of numerically solving ordinary differential equations, hence why there are so many solver options.
 

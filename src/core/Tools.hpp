@@ -24,7 +24,6 @@ struct CircleSettings : ToolSettings
     float radius = DEFAULT_LENGTH;
     float density = DEFAULT_DENSITY;
     float dragCoefficient = DEFAULT_DRAG;
-    float liftCoefficient = DEFAULT_LIFT;
     float frictionCoefficient = DEFAULT_FRICTION;
     float restitution = DEFAULT_RESTITUTION;
 };

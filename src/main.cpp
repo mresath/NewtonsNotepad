@@ -306,7 +306,6 @@ int main()
                             newCircle->setStatic(circleSettings->isStatic);
 
                             newCircle->body->dragCoefficient = circleSettings->dragCoefficient;
-                            newCircle->body->liftCoefficient = circleSettings->liftCoefficient;
                             newCircle->body->frictionCoefficient = circleSettings->frictionCoefficient;
                             newCircle->body->restitution = circleSettings->restitution;
 
@@ -549,7 +548,6 @@ int main()
             ImGui::DragFloat("Radius (m)", &circleSettings->radius, LENGTH_STEP, MIN_LENGTH, MAX_LENGTH);
             ImGui::DragFloat("Density (kg/m²)", &circleSettings->density, DENSITY_STEP, MIN_DENSITY, MAX_DENSITY);
             ImGui::DragFloat("Drag Coefficient", &circleSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
-            ImGui::DragFloat("Lift Coefficient", &circleSettings->liftCoefficient, LIFT_STEP, MIN_LIFT, MAX_LIFT);
             ImGui::DragFloat("Friction Coefficient", &circleSettings->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
             ImGui::DragFloat("Restitution", &circleSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
         }
@@ -707,13 +705,6 @@ int main()
             if (ImGui::Button("Graph##12"))
             {
                 grapher.toggleProperty(std::to_string(selectedObject->getID()), DRAG_COEFFICIENT);
-            }
-
-            ImGui::DragFloat("Lift Coefficient", &selectedObject->body->liftCoefficient, LIFT_STEP, MIN_LIFT, MAX_LIFT);
-            ImGui::SameLine();
-            if (ImGui::Button("Graph##13"))
-            {
-                grapher.toggleProperty(std::to_string(selectedObject->getID()), LIFT_COEFFICIENT);
             }
 
             ImGui::DragFloat("Friction Coefficient", &selectedObject->body->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);

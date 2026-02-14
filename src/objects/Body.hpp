@@ -9,7 +9,6 @@ enum BodyKeys
     MASS,
     MOMENT_OF_INERTIA,
     DRAG_COEFFICIENT,
-    LIFT_COEFFICIENT,
     FRICTION_COEFFICIENT,
     RESTITUTION,
     POSITION,
@@ -63,7 +62,6 @@ struct Body
 
     // Other Properties
     float dragCoefficient = 0.25f;
-    float liftCoefficient = 0.00f;
     float frictionCoefficient = 0.5f;
     float restitution = 0.7f;
 
@@ -95,7 +93,6 @@ struct Body
         body.momentOfInertia = j["properties"]["momentOfInertia"].get<float>();
 
         body.dragCoefficient = j["coefficients"]["drag"].get<float>();
-        body.liftCoefficient = j["coefficients"]["lift"].get<float>();
         body.frictionCoefficient = j["coefficients"]["friction"].get<float>();
         body.restitution = j["coefficients"]["restitution"].get<float>();
 
@@ -130,7 +127,6 @@ struct Body
 
         nlohmann::json coefficients;
         coefficients["drag"] = dragCoefficient;
-        coefficients["lift"] = liftCoefficient;
         coefficients["friction"] = frictionCoefficient;
         coefficients["restitution"] = restitution;
 
@@ -176,8 +172,6 @@ struct Body
             return momentOfInertia;
         case DRAG_COEFFICIENT:
             return dragCoefficient;
-        case LIFT_COEFFICIENT:
-            return liftCoefficient;
         case FRICTION_COEFFICIENT:
             return frictionCoefficient;
         case RESTITUTION:
@@ -232,8 +226,6 @@ inline std::string BodyKeyValue(BodyKeys key)
         return "momentOfInertia";
     case DRAG_COEFFICIENT:
         return "dragCoefficient";
-    case LIFT_COEFFICIENT:
-        return "liftCoefficient";
     case FRICTION_COEFFICIENT:
         return "frictionCoefficient";
     case RESTITUTION:
@@ -287,8 +279,6 @@ inline std::string BodyKeyName(BodyKeys key)
         return "Moment of Inertia";
     case DRAG_COEFFICIENT:
         return "Drag Coefficient";
-    case LIFT_COEFFICIENT:
-        return "Lift Coefficient";
     case FRICTION_COEFFICIENT:
         return "Friction Coefficient";
     case RESTITUTION:
@@ -341,8 +331,6 @@ inline std::string BodyKeyUnit(BodyKeys key)
     case MOMENT_OF_INERTIA:
         return "kg·m²";
     case DRAG_COEFFICIENT:
-        return "";
-    case LIFT_COEFFICIENT:
         return "";
     case FRICTION_COEFFICIENT:
         return "";

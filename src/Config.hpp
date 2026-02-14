@@ -85,11 +85,6 @@
 #define DRAG_STEP 0.02f
 #define DEFAULT_DRAG 0.0f
 
-#define MIN_LIFT 0.0f
-#define MAX_LIFT 1.0f
-#define LIFT_STEP 0.02f
-#define DEFAULT_LIFT 0.0f
-
 #define MIN_FRICTION 0.0f
 #define MAX_FRICTION 1.0f
 #define FRICTION_STEP 0.02f

@@ -126,22 +126,6 @@ void World::update(float dt)
         {
             object->deleteForce("drag");
         }
-
-        if (object->doMagnus && body->liftCoefficient != 0.0f)
-        {
-            float airDensity = this->airDensity;
-            float area = M_PI * object->dimensions.x;
-            
-            ForceSource magnusSource("magnus", [airDensity, area](Body state)
-                                     {
-                // TODO - implement
-                return Force(Vec2(0, 0), Vec2(0, 0)); });
-            object->applyForce(magnusSource);
-        }
-        else
-        {
-            object->deleteForce("magnus");
-        }
     }
 
     // Collision detection and forces
@@ -273,7 +257,6 @@ Object *World::loadTestScene()
     Object *newCircle = new Object(origin + amplitude, Vec2(0.25f, 0.25f), 1.0f, CIRCLE);
 
     newCircle->body->dragCoefficient = 0.0f;
-    newCircle->body->liftCoefficient = 0.0f;
     newCircle->body->frictionCoefficient = 0.0f;
     newCircle->body->restitution = 0.7f;
 
