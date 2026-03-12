@@ -71,3 +71,5 @@ As this simulation was made to compare ODE solvers, a simple test scene with an 
 ## Notes
 
 - The latest version of imgui-sfml requires imgui 1.91.x, so to compile the project you need to checkout v1.91.9b for that submodule.
+
+## Copyright
