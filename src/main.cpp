@@ -122,7 +122,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(sf::Vector2u(DEF_WIDTH, DEF_HEIGHT)), "Newton's Notepad");
     if (!ImGui::SFML::Init(window))
         return -1;
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(MAX_FPS);
 
     sf::View view(sf::FloatRect(sf::Vector2f(-DEF_HEIGHT / 2, -DEF_WIDTH / 2), sf::Vector2f(DEF_WIDTH, DEF_HEIGHT)));
     view.setCenter(sf::Vector2f(0, DEF_HEIGHT / 2));

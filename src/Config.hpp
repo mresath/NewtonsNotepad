@@ -42,6 +42,8 @@
 #define MAX_DT 0.05f             // seconds
 #define TEST_SCENE_DURATION 3.0f // seconds
 
+#define MAX_FPS 120
+
 // PHYSICS CONFIGURATION
 #define MIN_GRAVITY -50.0f
 #define MAX_GRAVITY 50.0f
