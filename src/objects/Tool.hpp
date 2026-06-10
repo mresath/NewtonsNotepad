@@ -15,6 +15,7 @@ enum ToolType
     DRAW_CIRCLE,
     DRAW_ROPE,
     DRAW_SPRING,
+    DRAW_STRUT,
     ERASE,
     TOOL_END
 };
@@ -50,6 +51,9 @@ inline sf::Texture *getToolTexture(ToolType type)
         break;
     case DRAW_SPRING:
         loaded = texture->loadFromFile("assets/spring.png");
+        break;
+    case DRAW_STRUT:
+        loaded = texture->loadFromFile("assets/rope.png");  // Reuse rope texture for now
         break;
     case ERASE:
         loaded = texture->loadFromFile("assets/trash.png");
@@ -92,6 +96,8 @@ struct Tool
             return "draw_rope";
         case DRAW_SPRING:
             return "draw_spring";
+        case DRAW_STRUT:
+            return "draw_strut";
         case ERASE:
             return "erase";
         default:
@@ -114,9 +120,11 @@ struct Tool
         case DRAW_CIRCLE:
             return "Draw Circle";
         case DRAW_ROPE:
-            return "Draw Strut";
+            return "Draw Rope";
         case DRAW_SPRING:
             return "Draw Spring";
+        case DRAW_STRUT:
+            return "Draw Strut";
         case ERASE:
             return "Erase";
         default:

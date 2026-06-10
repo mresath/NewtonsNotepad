@@ -51,6 +51,9 @@ void Tools::setCurrentTool(Tool *tool)
         case DRAW_ROPE:
             settings = new RopeSettings();
             break;
+        case DRAW_STRUT:
+            settings = new StrutSettings();
+            break;
         case DRAW_SPRING:
             settings = new SpringSettings();
             break;

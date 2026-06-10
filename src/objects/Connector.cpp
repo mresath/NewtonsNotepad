@@ -213,18 +213,18 @@ void Spring::draw(sf::RenderWindow *window) const
 
 /* ROPE */
 Rope::Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length)
-    : Connector(objA, ancA, objB, ancB), totalLength(length) {}
+    : Connector(objA, ancA, objB, ancB), totalLength(length), dampingFactor(0.3f) {}
 
 ForceSource Rope::getForceSource(bool isObjectA) const
 {
     const Vec2 *ancAptr = &anchorA;
     const Vec2 *ancBptr = &anchorB;
 
-    float stiffness = 1000.0f; // High stiffness for rope tension
+    // Moderate stiffness for constraint enforcement
+    float stiffness = 50.0f;
 
     return ForceSource(getIDString(), [this, ancAptr, ancBptr, isObjectA, stiffness](const Body &state) -> Force
                        {
-
         Vec2 anchor = isObjectA ? *ancAptr : *ancBptr;
         Vec2 origin = state.position + anchor;
 
@@ -234,16 +234,129 @@ ForceSource Rope::getForceSource(bool isObjectA) const
 
         Vec2 dir = origin - otherPosition;
         float currentLength = dir.length();
-        if (currentLength == 0.0f)
+        
+        if (currentLength < 0.001f)
             return Force(anchor, Vec2(0.0f, 0.0f));
         
         Vec2 unitDir = dir / currentLength;
+        
+        // Only apply force when rope is taut (stretched)
         float lengthDiff = currentLength - totalLength;
-        Vec2 springForce = unitDir * (-stiffness * lengthDiff);
-        return Force(anchor, springForce); });
+        
+        if (lengthDiff <= 0.0f)
+            return Force(anchor, Vec2(0.0f, 0.0f));
+        
+        // Calculate stress with penalty method
+        float stressForce = stiffness * lengthDiff;
+        
+        // Add damping based on relative velocity along the rope direction
+        Vec2 relativeVelocity = otherObject != nullptr ? 
+            state.velocity - otherObject->body->velocity : 
+            state.velocity;
+        float velAlongDir = dot(relativeVelocity, unitDir);
+        
+        // Only damp if the objects are moving apart
+        float dampingForce = 0.0f;
+        if (velAlongDir > 0.0f)
+            dampingForce = dampingFactor * velAlongDir * stressForce / 10.0f;
+        
+        Vec2 constraintForce = unitDir * (-(stressForce + dampingForce));
+        return Force(anchor, constraintForce);
+    });
 }
 
 void Rope::draw(sf::RenderWindow *window) const
 {
     Connector::draw(window);
+}
+
+/* STRUT */
+Strut::Strut(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length)
+    : Connector(objA, ancA, objB, ancB), fixedLength(length), stiffness(40.0f), dampingFactor(0.25f) {}
+
+ForceSource Strut::getForceSource(bool isObjectA) const
+{
+    const Vec2 *ancAptr = &anchorA;
+    const Vec2 *ancBptr = &anchorB;
+
+    return ForceSource(getIDString(), [this, ancAptr, ancBptr, isObjectA](const Body &state) -> Force
+                       {
+        Vec2 anchor = isObjectA ? *ancAptr : *ancBptr;
+        Vec2 origin = state.position + anchor;
+
+        Object *otherObject = isObjectA ? objectB : objectA;
+        Vec2 otherAnchor = isObjectA ? anchorB : anchorA;
+        Vec2 otherPosition = otherObject != nullptr ? otherObject->body->position + otherAnchor : otherAnchor;
+
+        Vec2 dir = origin - otherPosition;
+        float currentLength = dir.length();
+        
+        if (currentLength < 0.001f)
+            return Force(anchor, Vec2(0.0f, 0.0f));
+        
+        Vec2 unitDir = dir / currentLength;
+        
+        // Strut enforces both compression and tension
+        float lengthDiff = currentLength - fixedLength;
+        
+        // Calculate constraint force (both push and pull)
+        float constraintMagnitude = stiffness * lengthDiff;
+        
+        // Add critical damping to reduce oscillations
+        Vec2 relativeVelocity = otherObject != nullptr ? 
+            state.velocity - otherObject->body->velocity : 
+            state.velocity;
+        float velAlongDir = dot(relativeVelocity, unitDir);
+        
+        float dampingMagnitude = dampingFactor * velAlongDir * stiffness / 5.0f;
+        
+        // Force direction: compress (positive diff) or extend (negative diff)
+        Vec2 strutForce = unitDir * (-(constraintMagnitude + dampingMagnitude));
+        return Force(anchor, strutForce);
+    });
+}
+
+float Strut::getCurrentLength() const
+{
+    Vec2 posA = objectA != nullptr ? objectA->body->position + anchorA : anchorA;
+    Vec2 posB = objectB != nullptr ? objectB->body->position + anchorB : anchorB;
+
+    return (posB - posA).length();
+}
+
+void Strut::draw(sf::RenderWindow *window) const
+{
+    Vec2 posA = objectA != nullptr ? objectA->body->position + anchorA : anchorA;
+    Vec2 posB = objectB != nullptr ? objectB->body->position + anchorB : anchorB;
+
+    Vec2 pixelsA = *metersToPixels(&posA);
+    Vec2 pixelsB = *metersToPixels(&posB);
+
+    // Draw as a thick line to represent a strut/rod
+    float length = (pixelsB - pixelsA).length();
+    if (length < 1.0f)
+        return;
+
+    Vec2 direction = (pixelsB - pixelsA) / length;
+    Vec2 perpendicular(-direction.y, direction.x);
+    
+    const float thickness = 3.0f;
+    
+    // Create a rectangle shape for the strut
+    std::vector<sf::Vertex> vertices;
+    
+    Vec2 offset1 = perpendicular * thickness / 2.0f;
+    Vec2 offset2 = perpendicular * (-thickness / 2.0f);
+    
+    sf::Vertex v1{{pixelsA.x + offset1.x, pixelsA.y + offset1.y}, CONNECTOR_COLOR};
+    sf::Vertex v2{{pixelsB.x + offset1.x, pixelsB.y + offset1.y}, CONNECTOR_COLOR};
+    sf::Vertex v3{{pixelsB.x + offset2.x, pixelsB.y + offset2.y}, CONNECTOR_COLOR};
+    sf::Vertex v4{{pixelsA.x + offset2.x, pixelsA.y + offset2.y}, CONNECTOR_COLOR};
+    
+    vertices.push_back(v1);
+    vertices.push_back(v2);
+    vertices.push_back(v3);
+    vertices.push_back(v4);
+    
+    window->draw(vertices.data(), vertices.size(), sf::PrimitiveType::TriangleFan);
 }

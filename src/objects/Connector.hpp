@@ -65,6 +65,7 @@ struct Rope : Connector
 {
 public:
     float totalLength;
+    float dampingFactor;  // Controls oscillation damping
 
     Rope(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length);
     ~Rope()
@@ -76,6 +77,28 @@ public:
 
     void draw(sf::RenderWindow *window) const override;
 
+    float getEnergy() const override { return 0.0f; };
+    void applyEnergy() const override { };
+};
+
+struct Strut : Connector
+{
+public:
+    float fixedLength;      // Desired length (can be variable or fixed)
+    float stiffness;        // Constraint stiffness (moderate value)
+    float dampingFactor;    // Oscillation damping
+
+    Strut(Object *objA, Vec2 ancA, Object *objB, Vec2 ancB, float length);
+    ~Strut()
+    {
+        Connector::~Connector();
+    };
+
+    ForceSource getForceSource(bool isObjectA) const override;
+
+    void draw(sf::RenderWindow *window) const override;
+
+    float getCurrentLength() const;
     float getEnergy() const override { return 0.0f; };
     void applyEnergy() const override { };
 };

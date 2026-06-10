@@ -324,7 +324,7 @@ int main()
 
                             selectedObject = newCircle;
                         }
-                        else if (type == DRAW_ROPE || type == DRAW_SPRING)
+                        else if (type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT)
                         {
                             for (size_t i = 0; i < world.getObjects().size(); ++i)
                             {
@@ -392,9 +392,9 @@ int main()
                         }
                         toolForceMag = 0.0f;
 
-                        // Handle rope/spring creation
+                        // Handle rope/spring/strut creation
                         ToolType type = tools.getCurrentTool()->type;
-                        if (type == DRAW_ROPE || type == DRAW_SPRING)
+                        if (type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT)
                         {
                             if (anchor1 != nullptr)
                             {
@@ -476,6 +476,36 @@ int main()
 
                                         Spring *newSpring = new Spring(object1, *anchor1, object2, *anchor2, springSettings->stiffness, springSettings->damping, restLength);
                                         world.addConnector(newSpring);
+                                    }
+                                    else if (type == DRAW_STRUT)
+                                    {
+                                        StrutSettings *strutSettings = static_cast<StrutSettings *>(tools.settings);
+
+                                        float fixedLength;
+                                        if (object1 && object2)
+                                        {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            fixedLength = (pos2 - pos1).length();
+                                        }
+                                        else if (object1 && !object2)
+                                        {
+                                            Vec2 pos1 = object1->body->position + *anchor1;
+                                            fixedLength = (*anchor2 - pos1).length();
+                                        }
+                                        else if (!object1 && object2)
+                                        {
+                                            Vec2 pos2 = object2->body->position + *anchor2;
+                                            fixedLength = (*anchor1 - pos2).length();
+                                        }
+                                        else
+                                        {
+                                            fixedLength = 0.0f;
+                                        }
+                                        fixedLength *= strutSettings->fixedLength / 100.0f;
+
+                                        Strut *newStrut = new Strut(object1, *anchor1, object2, *anchor2, fixedLength);
+                                        world.addConnector(newStrut);
                                     }
                                 }
                                 delete anchor1;
@@ -562,7 +592,7 @@ int main()
             ImGui::DragFloat("Friction Coefficient", &circleSettings->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
             ImGui::DragFloat("Restitution", &circleSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
         }
-        else if (type == DRAW_ROPE || type == DRAW_SPRING)
+        else if (type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT)
         {
             ImGui::Text("Left Click and drag to create connection");
             ImGui::Separator();
@@ -577,6 +607,11 @@ int main()
                 ImGui::DragFloat("Stiffness (N/m)", &springSettings->stiffness, STIFFNESS_STEP, MIN_STIFFNESS, MAX_STIFFNESS);
                 ImGui::DragFloat("Damping (N·s/m)", &springSettings->damping, DAMPING_STEP, MIN_DAMPING, MAX_DAMPING);
                 ImGui::DragFloat("Resting Length (% of start)", &springSettings->restingLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
+            }
+            else if (type == DRAW_STRUT)
+            {
+                StrutSettings *strutSettings = static_cast<StrutSettings *>(tools.settings);
+                ImGui::DragFloat("Fixed Length (% of start)", &strutSettings->fixedLength, PERCENTAGE_STEP, MIN_PERCENTAGE, MAX_PERCENTAGE);
             }
         }
         else if (type == ERASE)
@@ -895,7 +930,7 @@ int main()
         // Clear screen and draw world & ui
         window.clear(BACKGROUND_COLOR);
         drawGridlines(window);
-        world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING);
+        world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT);
         
         // Draw path traces for all objects
         for (Object *obj : world.getObjects())
@@ -903,7 +938,7 @@ int main()
             obj->drawPathTrace(&window);
         }
 
-        if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr))
+        if ((type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT) && (anchor1 != nullptr && anchor2 == nullptr))
         {
             Vec2 pos1 = object1 ? (object1->body->position + *anchor1) : *anchor1;
             Vec2 pos2 = *posPointer;
@@ -926,6 +961,15 @@ int main()
                 restLength *= springSettings->restingLength / 100.0f;
 
                 tempConnector = new Spring(nullptr, pos1, nullptr, pos2, springSettings->stiffness, springSettings->damping, restLength);
+            }
+            else if (type == DRAW_STRUT)
+            {
+                StrutSettings *strutSettings = static_cast<StrutSettings *>(tools.settings);
+
+                float fixedLength = (pos2 - pos1).length();
+                fixedLength *= strutSettings->fixedLength / 100.0f;
+
+                tempConnector = new Strut(nullptr, pos1, nullptr, pos2, fixedLength);
             }
 
             tempConnector->draw(&window);

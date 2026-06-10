@@ -151,11 +151,26 @@
 - **Connector types**:
   - **Spring**: Hooke's law force (F = -k*x - c*v)
     - Properties: stiffness, damping, resting length
-  - **Cable/Strut**: Can only pull or push with maximum length/minimum length
-- **Functionality**:
-  - Calculates distance between attachment points
-  - Applies reaction forces to both connected objects
-  - Tracks and stores connector energy
+    - Pulls and pushes objects to maintain distance
+  - **Rope**: Provides tension-only constraint (can only pull, not push)
+    - Prevents objects from moving farther apart than `totalLength`
+    - Uses constraint-based penalty method with velocity damping
+    - Reduces wobbling and instability through careful damping
+    - Properties: total length, damping factor
+  - **Strut**: Rigid rod constraint (can both push and compress)
+    - Enforces a fixed distance between attachment points
+    - Can represent rigid structural members
+    - Uses moderate stiffness with critical damping to prevent oscillations
+    - Properties: fixed length, stiffness, damping factor
+- **Force Calculation**:
+  - Base class calculates distance and direction between anchors
+  - Each type applies constraint forces based on violation and relative velocity
+  - Damping term proportional to velocity prevents rapid oscillations
+- **Improvements in Rope/Strut**:
+  - Replaced high-stiffness spring (1000 N/m) with moderate constraint stiffness (50-40 N/m)
+  - Added velocity projection along connector direction for stability
+  - Critical damping prevents wobbling and out-of-bounds launches
+  - Penalty method with adaptive force magnitude ensures smooth constraint enforcement
 
 #### `Tool.hpp`
 - **What it does**: User tool interface
@@ -382,7 +397,7 @@ User sees updated simulation
 | `src/core/World.hpp` | Simulation container and manager |
 | `src/objects/Object.hpp` | Physical object definition |
 | `src/engine/ODE.hpp` | Physics solvers (8 methods) |
-| `src/objects/Connector.hpp` | Springs and cables |
+| `src/objects/Connector.hpp` | Springs, ropes, and struts |
 | `src/logging/Logger.hpp` | Data recording system |
 | `src/graphing/Grapher.hpp` | Visualization |
 | `src/math/Vec2.hpp` | 2D vector math |

@@ -33,6 +33,11 @@ struct RopeSettings : ToolSettings
     float totalLength = MAX_PERCENTAGE;
 };
 
+struct StrutSettings : ToolSettings
+{
+    float fixedLength = MAX_PERCENTAGE;
+};
+
 struct SpringSettings : ToolSettings
 {
     float stiffness = DEFAULT_STIFFNESS;

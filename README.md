@@ -11,9 +11,10 @@ A physics simulator/playground with the following features:
   - Impulse-based Collisions
   - Impulse-based Friction
   - Air Drag
-  - Springs
-  - Cables / Struts
-  - Push & Pool Tools
+  - Springs (Hooke's Law)
+  - Ropes (Tension-only constraints)
+  - Struts (Rigid rod constraints)
+  - Push & Pull Tools
 - Real Quantities & Units
   - The minor and major gridlines represent 1m and 5m respectively
   - In the code, right and down are taken to be positive for consistency with the graphics library
@@ -64,7 +65,34 @@ Once an object is selected, you can enable path tracing from the Object Properti
 
 The path trace records positions at regular intervals and fades points from bright blue to dim as they age, providing visual feedback for object motion patterns.
 
+## Connector Types (Springs, Ropes, and Struts)
+
+The simulation provides three types of connectors to link objects together:
+
+### Springs
+- Use Hooke's law to apply forces: F = -k*x - c*v
+- Can pull and push between objects
+- Useful for modeling elastic connections
+- Configurable stiffness and damping for energy dissipation
+
+### Ropes
+- Tension-only constraints that prevent objects from moving apart
+- Improved implementation using constraint-based forces instead of rigid springs
+- Prevents oscillations and instability through critical damping
+- Objects can get closer than the rope length (rope goes slack)
+- Better behavior for realistic rope/cable simulation
+
+### Struts
+- Rigid rod constraints that maintain a fixed distance
+- Can both pull (tension) and push (compression)
+- Stable constraint enforcement with moderate stiffness and damping
+- Useful for structural supports and rigid links
+- Prevents wobbling and sudden force spikes
+
+All connector types use improved force calculation methods with velocity-based damping to ensure stable, realistic simulations without the oscillations and launches that can occur with overly stiff springs.
+
 ## Logging
+
 
 The simulation logs the state at each update and saves it on exit. You can also save manually through the simulation settings. Keep in mind that resetting the simulation also resets the logged values.
 
