@@ -11,7 +11,7 @@
   - `drawGridlines()`: Renders the background grid (1m and 5m lines)
 - **Handles**:
   - Window creation and event processing
-  - Rendering loop (graphics and UI)
+  - Rendering loop (graphics, UI, path traces)
   - Physics updates through the World object
   - Tool and property panel rendering
 
@@ -21,6 +21,7 @@
   - Window and world dimensions (4000x2250 pixels world, 800x450 default window)
   - Physics limits (gravity, density, force)
   - Graphics settings (colors, grid spacing)
+  - Path trace settings (point radius, colors, fade time limits: 0.1-10.0s default 2.0s)
   - UI spacing and tool properties
   - Default solver (RK4) and calculation frequency (240 Hz)
 
@@ -57,10 +58,11 @@
 - **What it does**: ImGui interface rendering
 - **Panels**:
   - Settings panel: Gravity, air density, solver selection, time step
-  - Properties panel: Object-specific properties (mass, velocity, forces)
+  - Properties panel: Object-specific properties (mass, velocity, forces, **path trace controls**)
   - Tools panel: Selection and activation of tools
 - **Features**:
   - Graph selection buttons for tracked quantities
+  - **Path trace controls**: Enable/disable toggle, fade time slider (0.1-10.0s), clear trace button
   - Pause/play controls
   - Save/load options
 
@@ -103,15 +105,28 @@
 - **Components**:
   - `Body`: Physical state (position, velocity, mass, acceleration)
   - `Shape`: SFML drawable shape for rendering
+  - `PathTrace`: Historical position data with fade timing
 - **Properties**:
   - Position, velocity, acceleration (Vec2)
   - Mass, density, dimensions
   - Can be static (immovable) or dynamic
   - Can apply forces (gravity, drag, friction)
+  - **Path Tracing**:
+    - `pathTraceEnabled`: Toggle to enable/disable path visualization
+    - `pathTraceFadeTime`: Duration (seconds) before trace points fade and disappear (0.1-10.0s, default 2.0s)
+    - `pathTrace`: Deque of timestamped positions recorded at regular intervals
 - **Methods**:
   - `applyForce()`: Add a force source to the object
-  - `update()`: Step physics forward
+  - `update()`: Step physics forward and update path trace
+  - `updatePathTrace()`: Records new trace points and ages existing ones
+  - `drawPathTrace()`: Renders the path trace with fading color gradient
+  - `clearPathTrace()`: Clears all recorded path points
   - Getters for body properties (position, velocity, kinetic energy, etc.)
+- **Path Trace Features**:
+  - Records position every 0.05 seconds when enabled
+  - Points fade from bright blue to dim blue over the configured fade time
+  - Automatically removes points that exceed fade time
+  - Useful for visualizing object trajectories and motion patterns
 
 #### `Body.hpp`
 - **What it does**: Stores the pure physics state of an object

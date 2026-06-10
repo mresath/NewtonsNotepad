@@ -759,6 +759,17 @@ int main()
                 selectedObject = nullptr;
             }
 
+            ImGui::Separator();
+
+            ImGui::Text("Path Trace");
+            ImGui::Checkbox("Enable Path Trace", &selectedObject->pathTraceEnabled);
+            ImGui::SameLine();
+            if (ImGui::Button("Clear Trace"))
+            {
+                selectedObject->clearPathTrace();
+            }
+            ImGui::DragFloat("Fade Time (s)", &selectedObject->pathTraceFadeTime, PATH_TRACE_FADE_TIME_STEP, MIN_PATH_TRACE_FADE_TIME, MAX_PATH_TRACE_FADE_TIME);
+
             ImVec2 propWindowSize = ImGui::GetWindowSize();
             ImGui::SetNextWindowPos(ImVec2(window.getSize().x - propWindowSize.x - 10, 10), ImGuiCond_Once);
             ImGui::End();
@@ -885,6 +896,13 @@ int main()
         window.clear(BACKGROUND_COLOR);
         drawGridlines(window);
         world.draw(&window, type == DRAW_ROPE || type == DRAW_SPRING);
+        
+        // Draw path traces for all objects
+        for (Object *obj : world.getObjects())
+        {
+            obj->drawPathTrace(&window);
+        }
+
         if ((type == DRAW_ROPE || type == DRAW_SPRING) && (anchor1 != nullptr && anchor2 == nullptr))
         {
             Vec2 pos1 = object1 ? (object1->body->position + *anchor1) : *anchor1;

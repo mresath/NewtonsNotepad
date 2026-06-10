@@ -18,6 +18,10 @@ A physics simulator/playground with the following features:
   - The minor and major gridlines represent 1m and 5m respectively
   - In the code, right and down are taken to be positive for consistency with the graphics library
   - The position is standardized when exposed to the user, right and up being positive, and the ground being y=0
+- **Object Path Trace Visualization**
+  - Enable/disable path tracing per object
+  - Adjustable fade time (0.1 - 10.0 seconds) to control how long trace points persist
+  - Visual trail with color gradient fade for trajectory analysis
 - Adjustable Time Step
 - 7 ODE Solvers Using The Following Methods:
   - Euler's ("Euler")
@@ -47,6 +51,18 @@ If graphing doesn't work, you may need to install [gnuplot](http://www.gnuplot.i
 - P to pause
 - S to capture screenshot
 - G to toggle graphing
+
+## Path Trace Visualization
+
+Once an object is selected, you can enable path tracing from the Object Properties panel:
+
+- **Enable Path Trace**: Toggle to show/hide the trajectory trail
+- **Fade Time**: Adjust how long trace points remain visible (0.1 - 10.0 seconds)
+  - Shorter times create a more immediate trail
+  - Longer times show more complete trajectory history
+- **Clear Trace**: Remove all trace points for the current object
+
+The path trace records positions at regular intervals and fades points from bright blue to dim as they age, providing visual feedback for object motion patterns.
 
 ## Logging
 

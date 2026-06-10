@@ -6,6 +6,7 @@
 #include <math.h>
 #include <vector>
 #include <tuple>
+#include <deque>
 #include "objects/Body.hpp"
 #include "objects/Force.hpp"
 #include "math/Util.hpp"
@@ -20,6 +21,13 @@ enum ShapeType
     RECTANGLE,
 };
 
+// Structure to store a point in the path trace with its age
+struct PathTracePoint
+{
+    Vec2 position;      // World position in meters
+    float age = 0.0f;   // Time since this point was recorded (in seconds)
+};
+
 class Object
 {
 private:
@@ -27,6 +35,11 @@ private:
     std::vector<ForceSource *> forceSources;
     int id = 0;
     Vec2* gravityPtr;
+
+    // Path trace storage
+    std::deque<PathTracePoint> pathTrace;
+    float pathTraceRecordInterval = 0.05f;  // Record every 0.05 seconds
+    float timeSinceLastRecord = 0.0f;
 
 public:
     Body *body;
@@ -44,6 +57,10 @@ public:
     bool canApplyFriction = true;
 
     bool isGrabbed = false;
+
+    // Path trace properties
+    bool pathTraceEnabled = false;
+    float pathTraceFadeTime = DEFAULT_PATH_TRACE_FADE_TIME;
 
     Object(Vec2 position, Vec2 dimensions, float density, ShapeType type);
     ~Object();
@@ -66,6 +83,11 @@ public:
     void zeroEnergies();
     void totalEnergy();
     void update(float dt);
+
+    // Path trace methods
+    void updatePathTrace(float dt);
+    void drawPathTrace(sf::RenderWindow *window);
+    void clearPathTrace();
 
     void draw(sf::RenderWindow *window);
     void draw(sf::RenderWindow *window, bool showAttachmentPoints);

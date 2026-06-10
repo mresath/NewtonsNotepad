@@ -234,6 +234,76 @@ void Object::update(float dt)
     shape->setPosition(sf::Vector2f(pos->x, pos->y));
     shape->setRotation(sf::radians(body->rotation));
     delete pos;
+
+    // Update path trace
+    updatePathTrace(dt);
+}
+
+void Object::updatePathTrace(float dt)
+{
+    if (!pathTraceEnabled)
+        return;
+
+    // Age all existing points
+    for (auto &point : pathTrace)
+    {
+        point.age += dt;
+    }
+
+    // Remove points that have exceeded fade time
+    while (!pathTrace.empty() && pathTrace.front().age > pathTraceFadeTime)
+    {
+        pathTrace.pop_front();
+    }
+
+    // Record new point if enough time has passed
+    timeSinceLastRecord += dt;
+    if (timeSinceLastRecord >= pathTraceRecordInterval)
+    {
+        pathTrace.push_back({body->position, 0.0f});
+        timeSinceLastRecord = 0.0f;
+    }
+}
+
+void Object::drawPathTrace(sf::RenderWindow *window)
+{
+    if (!pathTraceEnabled || pathTrace.empty())
+        return;
+
+    for (const auto &point : pathTrace)
+    {
+        // Calculate alpha based on age (fade out as point gets older)
+        float alpha = 1.0f - (point.age / pathTraceFadeTime);
+        alpha = std::max(0.0f, std::min(1.0f, alpha));
+
+        // Create circle for this trace point
+        sf::CircleShape tracePoint(PATH_TRACE_POINT_RADIUS);
+        tracePoint.setOrigin(sf::Vector2f(PATH_TRACE_POINT_RADIUS, PATH_TRACE_POINT_RADIUS));
+
+        // Interpolate color based on age
+        sf::Color startColor = PATH_TRACE_POINT_COLOR;
+        sf::Color endColor = PATH_TRACE_FADE_COLOR;
+        sf::Color pointColor(
+            static_cast<unsigned char>(startColor.r * alpha + endColor.r * (1.0f - alpha)),
+            static_cast<unsigned char>(startColor.g * alpha + endColor.g * (1.0f - alpha)),
+            static_cast<unsigned char>(startColor.b * alpha + endColor.b * (1.0f - alpha)),
+            static_cast<unsigned char>(startColor.a * alpha + endColor.a * (1.0f - alpha))
+        );
+        tracePoint.setFillColor(pointColor);
+
+        // Convert world position to pixel coordinates
+        Vec2 *pixelPos = metersToPixels(&point.position);
+        tracePoint.setPosition(sf::Vector2f(pixelPos->x, pixelPos->y));
+        delete pixelPos;
+
+        window->draw(tracePoint);
+    }
+}
+
+void Object::clearPathTrace()
+{
+    pathTrace.clear();
+    timeSinceLastRecord = 0.0f;
 }
 
 void Object::draw(sf::RenderWindow *window)
