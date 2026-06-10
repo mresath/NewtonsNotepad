@@ -1,4 +1,4 @@
 - [ ] Force Vectors
-- [ ] Trace Path
+- [x] Trace Path
 - [ ] Better Strut/Rope
 - [ ] Rectangular Objects
