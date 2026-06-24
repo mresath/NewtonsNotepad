@@ -5,6 +5,15 @@
 #include "math/Vec2.hpp"
 #include "objects/Object.hpp"
 
+enum ForceType
+{
+    APPLIED,
+    GRAVITY,
+    COLLISION,
+    FRICTION,
+    DRAG
+};
+
 struct Force
 {
     Vec2 position;

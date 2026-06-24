@@ -21,11 +21,10 @@ enum ShapeType
     RECTANGLE,
 };
 
-// Structure to store a point in the path trace with its age
 struct PathTracePoint
 {
-    Vec2 position;      // World position in meters
-    float age = 0.0f;   // Time since this point was recorded (in seconds)
+    Vec2 position;      // meters
+    float age = 0.0f; // seconds
 };
 
 class Object
@@ -36,10 +35,11 @@ private:
     int id = 0;
     Vec2* gravityPtr;
 
-    // Path trace storage
     std::deque<PathTracePoint> pathTrace;
-    float pathTraceRecordInterval = 0.05f;  // Record every 0.05 seconds
+    float pathTraceRecordInterval = 0.05f;
     float timeSinceLastRecord = 0.0f;
+
+    std::vector<std::tuple<Force, ForceType>> forceArrows;
 
 public:
     Body *body;
@@ -58,9 +58,10 @@ public:
 
     bool isGrabbed = false;
 
-    // Path trace properties
     bool pathTraceEnabled = false;
     float pathTraceFadeTime = DEFAULT_PATH_TRACE_FADE_TIME;
+
+    bool arrowEnabled = false;
 
     Object(Vec2 position, Vec2 dimensions, float density, ShapeType type);
     ~Object();
@@ -75,7 +76,7 @@ public:
 
     const std::vector<ForceSource *> &getForces() const;
 
-    const std::tuple<Force, float> getNetForce() const;
+    const std::tuple<Force, float> getNetForce();
 
     void switchSolver(SolverType type);
 
@@ -84,10 +85,13 @@ public:
     void totalEnergy();
     void update(float dt);
 
-    // Path trace methods
     void updatePathTrace(float dt);
     void drawPathTrace(sf::RenderWindow *window);
     void clearPathTrace();
+
+    void addForceArrow(const Force &force, ForceType type);
+    void clearForceArrows();
+    void drawForceArrows(sf::RenderWindow *window);
 
     void draw(sf::RenderWindow *window);
     void draw(sf::RenderWindow *window, bool showAttachmentPoints);

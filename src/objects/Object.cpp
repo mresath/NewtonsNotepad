@@ -1,4 +1,5 @@
 #include "Object.hpp"
+#include "shapes/Arrow.hpp"
 
 Object::Object(Vec2 position, Vec2 dimensions, float density, ShapeType type)
 {
@@ -132,7 +133,7 @@ const std::vector<ForceSource *> &Object::getForces() const
     return forceSources;
 }
 
-const std::tuple<Force, float> Object::getNetForce() const
+const std::tuple<Force, float> Object::getNetForce()
 {
     Vec2 netForce(0.0f, 0.0f);
     float netTorque = 0.0f;
@@ -140,7 +141,23 @@ const std::tuple<Force, float> Object::getNetForce() const
     {
         std::tuple<Force, float> ft = source->calculateForce(*body);
 
-        netForce += std::get<0>(ft).force;
+        Force force = std::get<0>(ft);
+
+        if (arrowEnabled)
+        {
+            ForceType type = APPLIED;
+            if (source->name == "gravity")
+            {
+                type = GRAVITY;
+            }
+            else if (source->name == "drag")
+            {
+                type = DRAG;
+            }
+            addForceArrow(force, type);
+        }
+
+        netForce += force.force;
         netTorque += std::get<1>(ft);
     }
     return std::make_tuple(Force(Vec2(0.0f, 0.0f), netForce), netTorque);
@@ -287,8 +304,7 @@ void Object::drawPathTrace(sf::RenderWindow *window)
             static_cast<unsigned char>(startColor.r * alpha + endColor.r * (1.0f - alpha)),
             static_cast<unsigned char>(startColor.g * alpha + endColor.g * (1.0f - alpha)),
             static_cast<unsigned char>(startColor.b * alpha + endColor.b * (1.0f - alpha)),
-            static_cast<unsigned char>(startColor.a * alpha + endColor.a * (1.0f - alpha))
-        );
+            static_cast<unsigned char>(startColor.a * alpha + endColor.a * (1.0f - alpha)));
         tracePoint.setFillColor(pointColor);
 
         // Convert world position to pixel coordinates
@@ -306,6 +322,71 @@ void Object::clearPathTrace()
     timeSinceLastRecord = 0.0f;
 }
 
+void Object::addForceArrow(const Force &force, ForceType type)
+{
+    forceArrows.push_back(std::make_tuple(force, type));
+}
+
+void Object::clearForceArrows()
+{
+    forceArrows.clear();
+}
+
+void Object::drawForceArrows(sf::RenderWindow *window)
+{
+    if (!arrowEnabled)
+        return;
+
+    for (const auto &forceArrow : forceArrows)
+    {
+        Force force = std::get<0>(forceArrow);
+
+        if (force.force.length() < MIN_SIZE) continue;
+
+        Vec2 start = body->position + force.position;
+        Vec2 *startPixels = metersToPixels(&start);
+        Vec2 end = start + force.force * FORCE_ARROW_SCALE;
+
+        Vec2 dir = end - start;
+        Vec2 *dirPixels = metersToPixels(&dir);
+
+        float length = dirPixels->length();
+        float angle = dirPixels->angle();
+
+        sf::Color arrowColor;
+        switch (std::get<1>(forceArrow))
+        {
+        case APPLIED:
+            arrowColor = APPLIED_FORCE_ARROW_COLOR;
+            break;
+        case GRAVITY:
+            arrowColor = GRAVITY_FORCE_ARROW_COLOR;
+            break;
+        case COLLISION:
+            arrowColor = COLLISION_FORCE_ARROW_COLOR;
+            break;
+        case FRICTION:
+            arrowColor = FRICTION_FORCE_ARROW_COLOR;
+            break;
+        case DRAG:
+            arrowColor = DRAG_FORCE_ARROW_COLOR;
+            break;
+        default:
+            arrowColor = sf::Color::White;
+            break;
+        }
+
+        Arrow arrow(length, FORCE_ARROW_THICKNESS, length * 0.2f, length * 0.1f, arrowColor);
+        arrow.setPosition(sf::Vector2f(startPixels->x, startPixels->y));
+        arrow.setRotation(sf::radians(angle));
+
+        window->draw(arrow);
+
+        delete startPixels;
+        delete dirPixels;
+    }
+}
+
 void Object::draw(sf::RenderWindow *window)
 {
     draw(window, false);
@@ -314,6 +395,7 @@ void Object::draw(sf::RenderWindow *window)
 void Object::draw(sf::RenderWindow *window, bool showAttachmentPoints)
 {
     window->draw(*shape);
+
     if (isSelectable && showAttachmentPoints)
     {
         sf::CircleShape attachmentPointShape(ATTACHMENT_POINT_RADIUS);
@@ -322,6 +404,9 @@ void Object::draw(sf::RenderWindow *window, bool showAttachmentPoints)
         attachmentPointShape.setOrigin(sf::Vector2f(ATTACHMENT_POINT_RADIUS, ATTACHMENT_POINT_RADIUS));
         window->draw(attachmentPointShape);
     }
+
+    drawForceArrows(window);
+    clearForceArrows();
 }
 
 int Object::getID() const

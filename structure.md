@@ -11,7 +11,7 @@
   - `drawGridlines()`: Renders the background grid (1m and 5m lines)
 - **Handles**:
   - Window creation and event processing
-  - Rendering loop (graphics, UI, path traces)
+  - Rendering loop (graphics, UI, visualization)
   - Physics updates through the World object
   - Tool and property panel rendering
 
@@ -22,6 +22,7 @@
   - Physics limits (gravity, density, force)
   - Graphics settings (colors, grid spacing)
   - Path trace settings (point radius, colors, fade time limits: 0.1-10.0s default 2.0s)
+  - Force arrow settings (scale, thickness, type-color allocations)
   - UI spacing and tool properties
   - Default solver (RK4) and calculation frequency (240 Hz)
 
@@ -58,13 +59,8 @@
 - **What it does**: ImGui interface rendering
 - **Panels**:
   - Settings panel: Gravity, air density, solver selection, time step
-  - Properties panel: Object-specific properties (mass, velocity, forces, **path trace controls**)
+  - Properties panel: Object-specific properties (mass, velocity, forces, graph selection, visualization controls)
   - Tools panel: Selection and activation of tools
-- **Features**:
-  - Graph selection buttons for tracked quantities
-  - **Path trace controls**: Enable/disable toggle, fade time slider (0.1-10.0s), clear trace button
-  - Pause/play controls
-  - Save/load options
 
 ---
 
@@ -94,6 +90,7 @@
   - Impulse-based collision resolution
   - Friction modeling during collisions
   - Restitution (bounce) calculation
+  - Approximates force from impulse for visualization
 - **Checks**: Object-to-object and object-to-wall collisions
 
 ---
@@ -105,45 +102,42 @@
 - **Components**:
   - `Body`: Physical state (position, velocity, mass, acceleration)
   - `Shape`: SFML drawable shape for rendering
-  - `PathTrace`: Historical position data with fade timing
 - **Properties**:
   - Position, velocity, acceleration (Vec2)
   - Mass, density, dimensions
   - Can be static (immovable) or dynamic
   - Can apply forces (gravity, drag, friction)
-  - **Path Tracing**:
+  - Path Tracing:
     - `pathTraceEnabled`: Toggle to enable/disable path visualization
     - `pathTraceFadeTime`: Duration (seconds) before trace points fade and disappear (0.1-10.0s, default 2.0s)
     - `pathTrace`: Deque of timestamped positions recorded at regular intervals
+  - Force Arrows:
+    - `arrowEnabled`: Toggle to enable/disable force visualization
+    - `forceArrows`: Vector storing force-type tuples to be visualized as arrows
 - **Methods**:
   - `applyForce()`: Add a force source to the object
-  - `update()`: Step physics forward and update path trace
-  - `updatePathTrace()`: Records new trace points and ages existing ones
-  - `drawPathTrace()`: Renders the path trace with fading color gradient
-  - `clearPathTrace()`: Clears all recorded path points
+  - `update()`: Step physics forward
+  - Path trace methods
+  - Force arrow methods
   - Getters for body properties (position, velocity, kinetic energy, etc.)
-- **Path Trace Features**:
-  - Records position every 0.05 seconds when enabled
-  - Points fade from bright blue to dim blue over the configured fade time
-  - Automatically removes points that exceed fade time
-  - Useful for visualizing object trajectories and motion patterns
 
 #### `Body.hpp`
 - **What it does**: Stores the pure physics state of an object
 - **State variables**:
   - Position (x, y in world coordinates)
-  - Velocity (vx, vy)
-  - Acceleration (ax, ay)
+  - Velocity (v_x, v_y)
+  - Acceleration (a_x, a_y)
   - Mass, rotation, angular velocity
 - **Used by**: ODE solvers to compute next state
 
 #### `Force.hpp`
 - **What it does**: Different types of forces that can affect objects
 - **Force types**:
-  - Gravity: Downward acceleration
-  - Drag: Proportional to velocity (air resistance)
-  - Fiction: During collisions
-  - Applied force: From user tools
+  - Gravity
+  - Drag
+  - Collision
+  - Friction
+  - Applied (Tools & Connectors)
 - **Structure**: Each force has name, magnitude, and application method
 
 #### `Connector.hpp / Connector.cpp`
@@ -166,11 +160,6 @@
   - Base class calculates distance and direction between anchors
   - Each type applies constraint forces based on violation and relative velocity
   - Damping term proportional to velocity prevents rapid oscillations
-- **Improvements in Rope/Strut**:
-  - Replaced high-stiffness spring (1000 N/m) with moderate constraint stiffness (50-40 N/m)
-  - Added velocity projection along connector direction for stability
-  - Critical damping prevents wobbling and out-of-bounds launches
-  - Penalty method with adaptive force magnitude ensures smooth constraint enforcement
 
 #### `Tool.hpp`
 - **What it does**: User tool interface
@@ -198,6 +187,24 @@
 #### `Line.hpp`
 - **What it does**: Line segment math for collision detection
 - **Uses**: Checking if lines intersect for rectangular object collisions
+
+---
+
+### `src/shapes/` - SFML Shapes
+
+You can use these like any other SFML shape. For example:
+
+**src/objects/Object.cpp**
+```cpp
+Arrow arrow(length, FORCE_ARROW_THICKNESS, length * 0.2f, length * 0.1f, arrowColor);
+
+arrow.setPosition(sf::Vector2f(startPixels->x, startPixels->y));
+arrow.setRotation(sf::radians(angle));
+```
+
+#### `Arrow.hpp`
+- **What it does:** Custom 7-point arrow shape
+- **Parameters:** Takes `length`, `thickness`, `headLenght`, `headWidth`, and `color`
 
 ---
 
@@ -235,8 +242,8 @@
   4. Graphs pause simulation while open
 - **Graphable properties**:
   - Position (x, y)
-  - Velocity (vx, vy)
-  - Acceleration (ax, ay)
+  - Velocity (v_x, v_y)
+  - Acceleration (a_x, a_y)
   - Kinetic energy
   - Potential energy
   - Any applied force
@@ -410,3 +417,4 @@ User sees updated simulation
 - Simulation can run at different speeds; physics runs at fixed timestep, rendering at whatever FPS is possible
 - Test scene is useful for benchmarking new solvers
 - All quantities are logged automatically; users select what to graph in the UI
+- Forces are absent from logging (and acceleration is thus not accurate) because collisions and friction effects are impulse-based. It is possible to circumvent this by approximating the force (`impulse / dt`)  which is actually done for visualization, but this approach comes at a huge accuracy cost and therefore isn't used for physics calculations..

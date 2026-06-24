@@ -319,6 +319,9 @@ int main()
                             newCircle->body->dragCoefficient = circleSettings->dragCoefficient;
                             newCircle->body->frictionCoefficient = circleSettings->frictionCoefficient;
                             newCircle->body->restitution = circleSettings->restitution;
+                            newCircle->pathTraceEnabled = circleSettings->showPathTrace;
+                            newCircle->pathTraceFadeTime = circleSettings->pathTraceFadeTime;
+                            newCircle->arrowEnabled = circleSettings->showForceArrows;
 
                             world.addObject(newCircle);
 
@@ -591,6 +594,10 @@ int main()
             ImGui::DragFloat("Drag Coefficient", &circleSettings->dragCoefficient, DRAG_STEP, MIN_DRAG, MAX_DRAG);
             ImGui::DragFloat("Friction Coefficient", &circleSettings->frictionCoefficient, FRICTION_STEP, MIN_FRICTION, MAX_FRICTION);
             ImGui::DragFloat("Restitution", &circleSettings->restitution, RESTITUTION_STEP, MIN_RESTITUTION, MAX_RESTITUTION);
+            ImGui::Checkbox("Path Trace", &circleSettings->showPathTrace);
+            ImGui::SameLine();
+            ImGui::DragFloat("Fade Time (s)", &circleSettings->pathTraceFadeTime, PATH_TRACE_FADE_TIME_STEP, MIN_PATH_TRACE_FADE_TIME, MAX_PATH_TRACE_FADE_TIME);
+            ImGui::Checkbox("Force Arrows", &circleSettings->showForceArrows);
         }
         else if (type == DRAW_ROPE || type == DRAW_SPRING || type == DRAW_STRUT)
         {
@@ -805,6 +812,10 @@ int main()
             }
             ImGui::DragFloat("Fade Time (s)", &selectedObject->pathTraceFadeTime, PATH_TRACE_FADE_TIME_STEP, MIN_PATH_TRACE_FADE_TIME, MAX_PATH_TRACE_FADE_TIME);
 
+            ImGui::Separator();
+
+            ImGui::Checkbox("Enable Force Arrows", &selectedObject->arrowEnabled);
+
             ImVec2 propWindowSize = ImGui::GetWindowSize();
             ImGui::SetNextWindowPos(ImVec2(window.getSize().x - propWindowSize.x - 10, 10), ImGuiCond_Once);
             ImGui::End();
@@ -824,6 +835,25 @@ int main()
                 world.setODESolver(static_cast<SolverType>(currentSolver));
             }
             ImGui::DragFloat("Calculation Frequency (Hz)", &world.calculationFrequency, CALC_FREQ_STEP, MIN_CALC_FREQ, MAX_CALC_FREQ);
+            if (ImGui::Button("Enable Arrows"))
+            {
+                for (Object *obj : world.getObjects())
+                {
+                    if (!obj->isStatic) {
+                        obj->arrowEnabled = true;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Disable Arrows"))
+            {
+                for (Object *obj : world.getObjects())
+                {
+                    if (!obj->isStatic) {
+                        obj->arrowEnabled = false;
+                    }
+                }
+            }
             if (ImGui::Button("Save Logs"))
             {
                 logger.saveAll();

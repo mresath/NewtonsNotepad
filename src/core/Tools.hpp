@@ -26,6 +26,9 @@ struct CircleSettings : ToolSettings
     float dragCoefficient = DEFAULT_DRAG;
     float frictionCoefficient = DEFAULT_FRICTION;
     float restitution = DEFAULT_RESTITUTION;
+    bool showPathTrace = false;
+    float pathTraceFadeTime = DEFAULT_PATH_TRACE_FADE_TIME;
+    bool showForceArrows = false;
 };
 
 struct RopeSettings : ToolSettings

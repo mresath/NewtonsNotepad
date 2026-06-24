@@ -339,6 +339,13 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
     bodyA->angularVelocity += rACrossN * impulseMagnitude * invInertiaA;
     bodyB->angularVelocity -= rBCrossN * impulseMagnitude * invInertiaB;
 
+    // Add collision force arrows for visualization
+    if (impulseMagnitude != 0.0f)
+    {
+        objA->addForceArrow(Force(info.contactPoint - bodyA->position, impulse / dt), COLLISION);
+        objB->addForceArrow(Force(info.contactPoint - bodyB->position, impulse * -1 / dt), COLLISION);
+    }
+
     // --- Apply Friction ---
     // Recalculate relative velocity after normal impulse
     velA = bodyA->velocity + Vec2(-rA.y * bodyA->angularVelocity, 
@@ -382,5 +389,12 @@ void resolveCollision(Object *objA, Object *objB, const CollisionInfo &info, flo
         
         bodyA->angularVelocity += rACrossT * frictionImpulseMag * invInertiaA;
         bodyB->angularVelocity -= rBCrossT * frictionImpulseMag * invInertiaB;
+
+        // Add friction force arrows for visualization
+        if (frictionImpulseMag != 0.0f)
+        {
+            objA->addForceArrow(Force(info.contactPoint - bodyA->position, frictionImpulse / dt), FRICTION);
+            objB->addForceArrow(Force(info.contactPoint - bodyB->position, frictionImpulse * -1 / dt), FRICTION);
+        }
     }
 }
