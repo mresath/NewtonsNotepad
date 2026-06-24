@@ -6,8 +6,6 @@
 #include "math/Line.hpp"
 #include "objects/Object.hpp"
 
-// TODO: Update collision detection to support rotated rectangles
-
 // Helper structures for collision information
 struct CollisionInfo
 {
@@ -77,108 +75,17 @@ void projectCornersOntoAxis(Vec2* corners, const Line& axis, float& min, float& 
     }
 }
 
-/*
-// Rectangle-Rectangle collision detection using SAT
+// Rectangle-Rectangle collision detection
 CollisionInfo checkRectRectCollision(Object *objA, Object *objB)
 {
     CollisionInfo info;
-    info.isColliding = true;
-    info.penetration = INFINITY;
+    
+    
 
-    // Get corners for both rectangles
-    Vec2* cornersA = getCorners(objA);
-    Vec2* cornersB = getCorners(objB);
-
-    // Get axes to test (normals of edges)
-    Line* axesA = getAxes(objA);
-    Line* axesB = getAxes(objB);
-
-    // Test all 4 axes (2 from each rectangle)
-    Line allAxes[4] = {axesA[0], axesA[1], axesB[0], axesB[1]};
-    
-    for (int i = 0; i < 4; i++)
-    {
-        const Line& axis = allAxes[i];
-        
-        // Project both rectangles onto the axis using Line's projection method
-        float minA, maxA, minB, maxB;
-        projectCornersOntoAxis(cornersA, axis, minA, maxA);
-        projectCornersOntoAxis(cornersB, axis, minB, maxB);
-        
-        // Check for overlap
-        float overlap = std::min(maxA, maxB) - std::max(minA, minB);
-        
-        if (overlap <= 0)
-        {
-            // Found separating axis - no collision
-            info.isColliding = false;
-            delete[] cornersA;
-            delete[] cornersB;
-            delete[] axesA;
-            delete[] axesB;
-            return info;
-        }
-        
-        // Track minimum overlap for penetration depth
-        if (overlap < info.penetration)
-        {
-            info.penetration = overlap;
-            info.normal = axis.direction;
-            
-            // Ensure normal points from B to A
-            Vec2 diff = objA->body->position - objB->body->position;
-            if (dot(diff, info.normal) < 0)
-            {
-                info.normal = info.normal * -1.0f;
-            }
-        }
-    }
-
-    // Calculate contact point - find the center of the overlapping region
-    
-    // Get perpendicular to the collision normal
-    Vec2 tangent = info.normal.perpendicular();
-    
-    // Project all corners onto both collision normal and tangent
-    float projNormalA[4], projNormalB[4];
-    float projTangentA[4], projTangentB[4];
-    
-    for (int i = 0; i < 4; i++)
-    {
-        projNormalA[i] = dot(cornersA[i], info.normal);
-        projNormalB[i] = dot(cornersB[i], info.normal);
-        projTangentA[i] = dot(cornersA[i], tangent);
-        projTangentB[i] = dot(cornersB[i], tangent);
-    }
-
-    // Find overlap range along normal
-    float minNormalA = *std::min_element(projNormalA, projNormalA + 4);
-    float maxNormalA = *std::max_element(projNormalA, projNormalA + 4);
-    float minNormalB = *std::min_element(projNormalB, projNormalB + 4);
-    float maxNormalB = *std::max_element(projNormalB, projNormalB + 4);
-    
-    // Find overlap range along tangent
-    float minTangentA = *std::min_element(projTangentA, projTangentA + 4);
-    float maxTangentA = *std::max_element(projTangentA, projTangentA + 4);
-    float minTangentB = *std::min_element(projTangentB, projTangentB + 4);
-    float maxTangentB = *std::max_element(projTangentB, projTangentB + 4);
-
-    // Contact point is at the center of the overlapping region
-    float contactNormal = (std::max(minNormalA, minNormalB) + std::min(maxNormalA, maxNormalB)) * 0.5f;
-    float contactTangent = (std::max(minTangentA, minTangentB) + std::min(maxTangentA, maxTangentB)) * 0.5f;
-    
-    info.contactPoint = info.normal * contactNormal + tangent * contactTangent;
-    
-    delete[] cornersA;
-    delete[] cornersB;
-    delete[] axesA;
-    delete[] axesB;
-    
     return info;
 }
-*/
 
-// Circle-Rectangle collision detection (supports rotated rectangles)
+// Circle-Rectangle collision detection
 CollisionInfo checkCircleRectCollision(Object *circle, Object *rect)
 {
     CollisionInfo info;
@@ -256,7 +163,7 @@ CollisionInfo checkCollision(Object *objA, Object *objB)
     }
     else if (objA->shapeType == RECTANGLE && objB->shapeType == RECTANGLE)
     {
-        // return checkRectRectCollision(objA, objB);
+        return checkRectRectCollision(objA, objB);
     }
     else if (objA->shapeType == CIRCLE && objB->shapeType == RECTANGLE)
     {
