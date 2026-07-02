@@ -423,4 +423,4 @@ User sees updated simulation
 - Simulation can run at different speeds; physics runs at fixed timestep, rendering at whatever FPS is possible
 - Test scene is useful for benchmarking new solvers
 - All quantities are logged automatically; users select what to graph in the UI
-- Forces are absent from logging (and acceleration is thus not accurate) because collisions and friction effects are impulse-based. It is possible to circumvent this by approximating the force (`impulse / dt`)  which is actually done for visualization, but this approach comes at a huge accuracy cost and therefore isn't used for physics calculations..
+- Forces are absent from logging (and acceleration is thus not accurate) because collisions and friction effects are impulse-based. It is possible to circumvent this by approximating the force (`impulse / dt`)  which is actually done for visualization, but this approach comes at a huge accuracy cost and therefore isn't used for physics calculations.
