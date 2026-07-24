@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (WIN32)
     set(SFML_DIR "${CMAKE_SOURCE_DIR}/vendor/SFML/lib/cmake/SFML")
+    enable_language(RC)
 elseif(APPLE)
     list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/sfml")
 endif()
@@ -22,7 +23,14 @@ add_subdirectory(vendor/matplotplusplus)
 
 add_subdirectory(vendor/json)
 
-add_executable(${PROJECT_NAME} 
+if(WIN32)
+    set(APP_ICON_RESOURCE "${CMAKE_CURRENT_LIST_DIR}/resources/windows/app.rc")
+elseif(APPLE)
+    set(APP_ICON_RESOURCE "${CMAKE_CURRENT_LIST_DIR}/resources/mac/icon.icns")
+    set_source_files_properties(${APP_ICON_RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endif()
+
+add_executable(${PROJECT_NAME}
     src/main.cpp
     src/core/World.cpp
     src/core/Tools.cpp
@@ -31,7 +39,24 @@ add_executable(${PROJECT_NAME}
     src/engine/ODE.cpp
     src/logging/Logger.cpp
     src/graphing/Grapher.cpp
+    ${APP_ICON_RESOURCE}
 )
+
+if(APPLE)
+    # NOTE: the bundle/executable name intentionally has no apostrophe - the Unix
+    # Makefiles generator breaks its custom-command shell quoting on paths containing one.
+    # The apostrophe still shows correctly to users via CFBundleName (menu bar, About panel, etc).
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "Newtons Notepad"
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_NAME "Newton's Notepad"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.newtonsnotepad.app"
+        MACOSX_BUNDLE_ICON_FILE "icon.icns"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/resources/mac/Info.plist.in"
+    )
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
@@ -45,10 +70,11 @@ add_custom_command(
     COMMENT "Copying SFML DLLs to build directory..."
 )
 
-add_custom_target(copy_assets
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_LIST_DIR}/copy_assets.cmake
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -DTARGET_DIR=$<TARGET_FILE_DIR:${PROJECT_NAME}> -DSRC_DIR=${CMAKE_CURRENT_LIST_DIR} -P ${CMAKE_CURRENT_LIST_DIR}/copy_assets.cmake
+    COMMENT "Copying assets to build directory..."
 )
-add_dependencies(${PROJECT_NAME} copy_assets)
 
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")

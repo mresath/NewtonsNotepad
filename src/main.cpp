@@ -1,6 +1,7 @@
 #include "Config.hpp"
 
 #include <iostream>
+#include <filesystem>
 #include <fmt/format.h>
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
@@ -9,6 +10,45 @@
 #include "core/UI.hpp"
 #include "logging/Logger.hpp"
 #include "graphing/Grapher.hpp"
+
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#else
+#include <unistd.h>
+#endif
+
+// Assets/logs are located relative to the executable, but the OS may launch the app
+// (e.g. from Finder or the Start Menu) with an unrelated working directory, so resolve
+// and switch to the executable's directory first.
+static void chdirToExecutableDirectory()
+{
+    std::filesystem::path exePath;
+
+#if defined(_WIN32)
+    char buffer[MAX_PATH];
+    DWORD length = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+    if (length > 0 && length < MAX_PATH)
+        exePath = std::filesystem::path(buffer, buffer + length);
+#elif defined(__APPLE__)
+    char buffer[PATH_MAX];
+    uint32_t size = sizeof(buffer);
+    if (_NSGetExecutablePath(buffer, &size) == 0)
+        exePath = std::filesystem::canonical(buffer);
+#else
+    char buffer[PATH_MAX];
+    ssize_t length = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (length > 0)
+        exePath = std::filesystem::path(buffer, buffer + length);
+#endif
+
+    if (!exePath.empty())
+    {
+        std::error_code ec;
+        std::filesystem::current_path(exePath.parent_path(), ec);
+    }
+}
 
 // Helper for gridlines
 void drawGridlines(sf::RenderWindow &window, float majorSpacing = GRID_MAJOR_SPACING, float minorSpacing = GRID_MINOR_SPACING)
@@ -95,6 +135,8 @@ void drawGridlines(sf::RenderWindow &window, float majorSpacing = GRID_MAJOR_SPA
 // Entry point
 int main()
 {
+    chdirToExecutableDirectory();
+
     // Constant and global variables
     const int toolFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
     const int propFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
@@ -123,6 +165,11 @@ int main()
     if (!ImGui::SFML::Init(window))
         return -1;
     window.setFramerateLimit(MAX_FPS);
+
+    // Window/taskbar icon (no-op on macOS, which uses the .app bundle icon instead)
+    sf::Image icon;
+    if (icon.loadFromFile("assets/logo/logo.png"))
+        window.setIcon(icon.getSize(), icon.getPixelsPtr());
 
     sf::View view(sf::FloatRect(sf::Vector2f(-DEF_HEIGHT / 2, -DEF_WIDTH / 2), sf::Vector2f(DEF_WIDTH, DEF_HEIGHT)));
     view.setCenter(sf::Vector2f(0, DEF_HEIGHT / 2));
