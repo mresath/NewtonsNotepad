@@ -103,9 +103,9 @@ To select quantities, press the graph button next to the property in the object 
 
 You can save the graph as an image through the graphing window.
 
-## Test Setup
+## Presets
 
-As this simulation was made to compare ODE solvers, a simple test scene with an object and a spring has been coded into it. You can load it through the simulation settings, and graph important quantities in the object properties panel. After loading a test scene, the simulation automatically pauses after 3 seconds.
+- **Solver Test**: a simple object-and-spring scene, for comparing the behavior of the different ODE solvers. Load it through the simulation settings and graph important quantities in the object properties panel; the simulation automatically pauses 3 seconds after loading.
 
 ## Notes
 
