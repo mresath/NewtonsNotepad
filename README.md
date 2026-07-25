@@ -50,13 +50,15 @@ If graphing doesn't work, you may need to install [gnuplot](http://www.gnuplot.i
 
 ## Controls
 
-- LMB to use tools or interact with objects
-- Hold RMB and move your mouse to pan
-- Scroll to zoom in/out
-- Esc to toggle settings
-- P to pause
-- S to capture screenshot
-- G to toggle graphing
+- `LMB`: use the active tool / interact with objects
+- `RMB + drag`: pan view
+- `Mouse wheel`: zoom
+- `Esc`: toggle settings
+- `P`: pause/resume simulation
+- `S`: capture screenshot
+- `G`: toggle graphing
+
+UI panels: `Stats`, `Tools`, `Tool Settings`, `Object Properties` (appears once an object is selected), `Simulation Settings` (`Esc`)
 
 ## Connector Types (Springs, Ropes, and Struts)
 
